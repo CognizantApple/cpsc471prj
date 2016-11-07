@@ -1,0 +1,6 @@
+<?php
+
+	function cpsc471prj_menu(){
+		return array();
+	}
+?>
