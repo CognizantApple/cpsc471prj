@@ -1,6 +1,28 @@
 <?php
 
 	function cpsc471prj_menu(){
-		return array();
+		$items = array();
+		
+		$items['test/%'] = array (
+			'title' => 'Test',
+			'description' => 'This is a test',
+			'page callback' => 'drupal_get_form',
+			'page arguments' => array (
+					'myform', 1,
+			),
+			'access callback' => true,
+			
+		);
+		return $items;
+	}
+	
+	function myform($form, &$form_state, $number) {
+		
+		
+		$form['ex'] = array (
+			'#markup' => $number,	
+		);
+		
+		return $form;
 	}
 ?>
