@@ -18,11 +18,71 @@
 	
 	function myform($form, &$form_state, $number) {
 		
+		db_query("SELECT * FROM Users");
+		
+	
+		if(isset($form_state['storage']['save_value'])) {
+			$number = $form_state['storage']['save_value'];
+			$number *= 2;
+		}
+		
 		
 		$form['ex'] = array (
+			'#prefix' => '<div id="my_div">',
 			'#markup' => $number,	
+			'#suffix' => '</div>',
+		);
+		
+		$form_state['storage']['save_value'] = intval($number);
+		
+		$form['button'] = array (
+			'#type' => 'fieldset',
+			'#title' => 'fred',
+			
+			
+				
+			
+				
+			'button2' => array (
+				'#type' => 'button',
+				'#value' => 'fish',
+					'#ajax' => array (
+							'callback' => 'my_ajax',
+							'wrapper' => 'my_div',
+					),
+			),
+		);
+		
+		$form['textfield6'] = array (
+			'#type' => 'textfield',	
+		);
+		
+		$form['submit'] = array (
+			'#type' => 'submit',
+			'#value' => 'Submit',
+				
+				
+			'#validate' => array('validate'),
+			'#submit' => array('submit'),
 		);
 		
 		return $form;
+	}
+	
+	function validate($form, &$form_state) {
+		$form_state['values']['textfield6'] = intval($form_state['values']['textfield6'] );
+		
+		if($form_state['values']['textfield6'] == 0) {
+			form_set_error('textfield6', "stop");
+		}
+	}
+	
+	function submit($form, &$form_state) {
+		drupal_set_message($form_state['values']['textfield6']);
+		drupal_goto('');
+	}
+	
+	function my_ajax($form, $form_state) {
+		return $form['ex'];
 	}
 ?>
