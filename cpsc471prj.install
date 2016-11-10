@@ -34,5 +34,31 @@ function cpsc471prj_schema() {
 		'primary key' => array ('uid')
 	);
 	
+	$schema['Andy_Table'] = array (
+		'description' => 'The table of andy's random shite',
+		'fields' => array (
+			'years_old' => array (
+				'type' => 'int',
+				'not null' => true
+			),
+			'Name' => array (
+				'type' => 'varchar',
+				'length' => 60,
+				'not null' => true,
+				'default' => 'oondy',
+			),
+			'phone' => array (
+				'type' => 'varchar',
+				'length' => 60,
+				'not null' => true,	
+			),
+			'primary_id' => array (
+				'type' => 'int',
+				'not null' => true,	
+			),
+		),
+		'primary key' => array ('primary_id')
+	);
+	
 	return $schema;
 }
