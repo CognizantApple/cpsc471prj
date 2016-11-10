@@ -135,7 +135,7 @@ abstract class DBTableInstance {
 		$sql = 'SELECT * FROM ' . $this->tableName . ' WHERE ';
 		
 		foreach($toSelect as $index => $value) {
-			$sql .= $index . '=' . $value . ' ';
+			$sql .= $index . '="' . $value . '" ';
 		}
 		
 		$result = db_query($sql);
