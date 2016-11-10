@@ -407,7 +407,7 @@ function cpsc471prj_schema() {
 	
 	);
 	
-	$schema['cottage_nightly_Cost'] = array(
+	$schema['cottage_nightly_cost'] = array(
 			'description' => 'Cost to book a cottage by number of nights',
 			'fields' => array( // List of attributes/columns
 					'price_guide_id' => array(
