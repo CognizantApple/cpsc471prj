@@ -55,7 +55,9 @@ class User {
 	public function hasRole($roleName) {
 		$roles = user_roles();
 		
-		return user_has_role(array_search($roleName, $roles));
+		global $user;
+		
+		return user_has_role(array_search($roleName, $roles), $user);
 	}
 	
 	/**
