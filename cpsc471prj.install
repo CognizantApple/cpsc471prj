@@ -60,5 +60,22 @@ function cpsc471prj_schema() {
 		'primary key' => array ('primary_id')
 	);
 	
+	$schema['TableOfJosh'] = array(
+		'description' => 'Heed the flies as the scream',
+		'fields' => array( // List of attributes/columns
+			'column_walrus' => array(
+				'type' => 'varchar',
+				'length' => 1,
+				'not null' => true, 
+			),
+			'column_haberdashery' => array(
+				'type' => 'int',
+				'not null' => true,
+			),
+		),
+		'primary key' => array('column_walrus', 'column_haberdashery')
+			
+	);
+	
 	return $schema;
 }
