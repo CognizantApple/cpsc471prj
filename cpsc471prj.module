@@ -105,6 +105,20 @@ function cpsc471prj_menu(){
 		'type' => MENU_LOCAL_ACTION
 	);
 	
+	$items['scc/manager/cottages'] = array (
+		'title' => 'View Seasons',
+		'description' => 'Manager main page',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array (
+				'manager_view_cottages_form',
+		),
+		'menu_name' => 'cpsc',
+		'access callback' => 'cpsc471_access',
+		'access arguments' => array (
+				'manager'
+		),
+	);
+	
 	
 	$items['test/%'] = array (
 		'title' => 'Test',
@@ -246,6 +260,15 @@ function manager_view_seasons_form($form, &$form_state) {
 }
 
 function manager_create_seasons_form($form, &$form_state) {
+	
+}
+
+/**
+ * Form with a table of cottages to view
+ * @param unknown $form
+ * @param unknown $form_state
+ */
+function manager_view_cottages_form($form, &$form_state) {
 	
 }
 
