@@ -68,7 +68,7 @@ function cpsc471prj_schema() {
 		'description' => 'Table containing each renter and their information',
 		'fields' => array(
 			'id' => array(
-				'type' => 'int',
+				'type' => 'serial',
 				'not null' => true,
 			),
 			'account_uid' => array(
