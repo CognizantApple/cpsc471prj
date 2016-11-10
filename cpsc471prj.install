@@ -35,7 +35,7 @@ function cpsc471prj_schema() {
 	);
 	
 	$schema['Andy_Table'] = array (
-		'description' => 'The table of andy's random shite',
+		'description' => 'The table of andys random shite',
 		'fields' => array (
 			'years_old' => array (
 				'type' => 'int',
