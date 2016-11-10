@@ -11,6 +11,17 @@ function cpsc471prj_install() {
 }
 
 /**
+ * Implements hook_uninstall()
+ *
+ * Called when the module is uninstalled
+ */
+function cpsc471prj_uninstall() {
+	//just delete the module roles for safety
+	user_role_delete('Renter');
+	user_role_delete('Manager');
+}
+
+/**
  * Creates the menu block for the module, must be manually enabled in structure->blocks
  * to be visible
  */
@@ -435,4 +446,5 @@ function cpsc471prj_schema() {
 	
 	
 	return $schema;
+
 }
