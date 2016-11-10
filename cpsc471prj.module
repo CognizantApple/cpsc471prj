@@ -1,5 +1,8 @@
 <?php
 
+//includes other.php
+module_load_include('php', 'cpsc471prj', 'inlcudes/other');
+
 	function cpsc471prj_menu(){
 		$items = array();
 		

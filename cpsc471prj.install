@@ -1,0 +1,38 @@
+<?php
+function cpsc471prj_install() {
+	
+}
+
+function cpsc471prj_uninstall() {
+
+}
+
+function cpsc471prj_schema() {
+	$schema = array();
+	
+	$schema['Rental_Account'] = array (
+		'description' => 'The account info for particular renters',
+		'fields' => array (
+			'uid' => array (
+				'type' => 'int',
+				'not null' => true
+			),
+			'credit_card' => array (
+				'type' => 'varchar',
+				'length' => 60,
+				'not null' => true,
+			),
+			'phone' => array (
+				'type' => 'varchar',
+				'length' => 60,
+				'not null' => true,	
+			),
+			'primary_renter_id' => array (
+				'type' => 'int',
+			),
+		),
+		'primary key' => array ('uid')
+	);
+	
+	return $schema;
+}
