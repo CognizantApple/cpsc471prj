@@ -1,5 +1,4 @@
 <?php
-include 'DBQuery.php';
 
 /**
  * Base class for instances from tables
