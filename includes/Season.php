@@ -1,12 +1,13 @@
 <?php
 
 module_load_include("php", "cpsc471prj","includes/DBconf");
+module_load_include("php", "cpsc471prj","includes/DBTableInstance");
 /**
  * Class for making and adding seasons
  * @author andys
  *
  */
-class Season extends DBTableInstance{
+class Season extends DBTableInstance {
 	
 	protected $id_p;
 	

@@ -1,5 +1,6 @@
 <?php
 module_load_include('php', 'cpsc471prj', 'includes/User');
+module_load_include('php', 'cpsc471prj', 'includes/Season');
 
 /**
  * Implements hook_permission()
@@ -309,7 +310,7 @@ function create_season_form_submit($form, $form_state){
 	);
 	scc_debug($seasonVals);
 	
-	$s = new Season();
+	$s = new Season($seasonVals);
 	$s->setCopy($seasonVals);
 	$s->storeToDB();
 	
