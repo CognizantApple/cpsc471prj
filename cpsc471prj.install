@@ -15,6 +15,35 @@ function cpsc471prj_uninstall() {
 function cpsc471prj_schema() {
 	$schema = array();
 	
+	$schema['Renter'] = array(
+		'description' => 'Table containing each renter and their information',
+		'fields' => array(
+			'id' => array(
+				'type' => 'int',
+				'not null' => true,
+			),
+			'account_uid' => array(
+				'type' => 'int',
+				'not null' => true,
+			),
+			'name' => array(
+				'type' => 'varchar',
+				'length' => 256,
+				'not null' => true,
+			),
+			'is_adult' => array(
+				'type' => 'int',
+				'size' => 'tiny',
+				'not null' => true,
+			),
+			'birth_time' => array(
+				'type' => 'int',
+				'size' => 'normal',
+			),
+		),
+		'primary key' => array('id', 'account_uid'),
+	);
+	
 	$schema['Rental_Account'] = array (
 		'description' => 'The account info for particular renters',
 		'fields' => array (
@@ -37,6 +66,100 @@ function cpsc471prj_schema() {
 			),
 		),
 		'primary key' => array ('uid')
+	);
+	
+	$schema['Rental'] = array(
+		'description' => 'Information of a rental ',
+		'fields' => array(
+			'start_time' => array(
+				'type' => 'int',
+				'not null' => true,
+			),
+			'renters_uid' => array(
+				'type' => 'int',
+				'not null' => true,
+			),
+			'duration' => array(
+				'type' => 'int',
+				'not null' => true,
+			),
+			'price_override' => array(
+				'type' => 'int',
+			),
+			'actual_arrival_time' => array(
+				'type' => 'int',
+			),
+			'estimated_arrival_time' => array(
+				'type' => 'int',
+				'not null' => true,
+			),
+			'returning' => array(
+				'type' => 'int',
+				'size' => 'tiny',
+				'not null' => true,
+			),
+			'rental_type' => array(
+				'type' => 'varchar',
+				'length' => 20,
+				'not null' => true,
+			),
+		),
+		'primary key' => array('start_time', 'renters_uid'),
+	);
+	
+	$schema['Rental_renters'] = array(
+		'description' => 'Information linking a rental to the renters and the renting account',
+		'fields' => array(
+			'renter_id' => array(
+				'type' => 'int',
+				'not null' => true,
+			),
+			'account_uid' => array(
+				'type' => 'int',
+				'not null' => true,
+			),
+			'rental_start_time' => array(
+				'type' => 'int',
+				'not null' => true,
+			),
+			'renters_uid' => array(
+				'type' => 'int',
+				'not null' => true,
+			),
+			
+		),
+		'primary key' => array('renter_id', 'account_uid', 'rental_start_time', 'renters_uid'),
+	);
+	
+	$schema['Renters_car'] = array(
+		'description' => 'Information about a renters car',
+		'fields' => array(
+			'liscence_plate' => array(
+				'type' => 'varchar',
+				'length' => 20,
+				'not null' => true,
+			),
+			'start_time' => array(
+				'type' => 'int',
+				'not null' => true,
+			),
+			'renter_uid' => array(
+				'type' => 'int',
+				'not null' => true,
+			),
+			'colour' => array(
+				'type' => 'varchar',
+				'length' => 20,
+				'not null' => true,
+			),
+			'make' => array(
+				'type' => 'varchar',
+				'length' => 50,
+				'not null' => true,
+			),
+		
+		),
+		'primary key' => array('liscence_plate', 'start_time', 'renter_uid'),
 	);
 	
 	return $schema;
