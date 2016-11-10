@@ -1,11 +1,6 @@
 <?php
 function cpsc471prj_install() {
-	$menu = array (
-			'menu_name' => 'cpsc',
-			'title' => 'Scotch Creek Cottages',
-			'description' => '',
-	);
-	menu_save($menu);
+	
 }
 
 function cpsc471prj_uninstall() {
@@ -15,7 +10,36 @@ function cpsc471prj_uninstall() {
 function cpsc471prj_schema() {
 	$schema = array();
 	
-	$schema['Rental_Account'] = array (
+	$schema['renter'] = array(
+		'description' => 'Table containing each renter and their information',
+		'fields' => array(
+			'id' => array(
+				'type' => 'int',
+				'not null' => true,
+			),
+			'account_uid' => array(
+				'type' => 'int',
+				'not null' => true,
+			),
+			'name' => array(
+				'type' => 'varchar',
+				'length' => 256,
+				'not null' => true,
+			),
+			'is_adult' => array(
+				'type' => 'int',
+				'size' => 'tiny',
+				'not null' => true,
+			),
+			'birth_time' => array(
+				'type' => 'int',
+				'size' => 'normal',
+			),
+		),
+		'primary key' => array('id', 'account_uid'),
+	);
+	
+	$schema['rental_account'] = array (
 		'description' => 'The account info for particular renters',
 		'fields' => array (
 			'uid' => array (
@@ -38,6 +62,323 @@ function cpsc471prj_schema() {
 		),
 		'primary key' => array ('uid')
 	);
+	
+	$schema['rental'] = array(
+		'description' => 'Information of a rental ',
+		'fields' => array(
+			'start_time' => array(
+				'type' => 'int',
+				'not null' => true,
+			),
+			'renters_uid' => array(
+				'type' => 'int',
+				'not null' => true,
+			),
+			'duration' => array(
+				'type' => 'int',
+				'not null' => true,
+			),
+			'price_override' => array(
+				'type' => 'int',
+			),
+			'actual_arrival_time' => array(
+				'type' => 'int',
+			),
+			'estimated_arrival_time' => array(
+				'type' => 'int',
+				'not null' => true,
+			),
+			'returning' => array(
+				'type' => 'int',
+				'size' => 'tiny',
+				'not null' => true,
+			),
+			'rental_type' => array(
+				'type' => 'varchar',
+				'length' => 20,
+				'not null' => true,
+			),
+		),
+		'primary key' => array('start_time', 'renters_uid'),
+	);
+	
+	$schema['rental_renters'] = array(
+		'description' => 'Information linking a rental to the renters and the renting account',
+		'fields' => array(
+			'renter_id' => array(
+				'type' => 'int',
+				'not null' => true,
+			),
+			'account_uid' => array(
+				'type' => 'int',
+				'not null' => true,
+			),
+			'rental_start_time' => array(
+				'type' => 'int',
+				'not null' => true,
+			),
+			'renters_uid' => array(
+				'type' => 'int',
+				'not null' => true,
+			),
+			
+		),
+		'primary key' => array('renter_id', 'account_uid', 'rental_start_time', 'renters_uid'),
+	);
+	
+	$schema['renters_car'] = array(
+		'description' => 'Information about a renters car',
+		'fields' => array(
+			'liscence_plate' => array(
+				'type' => 'varchar',
+				'length' => 20,
+				'not null' => true,
+			),
+			'start_time' => array(
+				'type' => 'int',
+				'not null' => true,
+			),
+			'renter_uid' => array(
+				'type' => 'int',
+				'not null' => true,
+			),
+			'colour' => array(
+				'type' => 'varchar',
+				'length' => 20,
+				'not null' => true,
+			),
+			'make' => array(
+				'type' => 'varchar',
+				'length' => 50,
+				'not null' => true,
+			),
+		
+		),
+		'primary key' => array('liscence_plate', 'start_time', 'renter_uid'),
+	);
+	
+	$schema['rented'] = array(
+			'description' => 'Relationship table for rentable items, start times, and renters.',
+			'fields' => array( // List of attributes/columns
+					'rentable_item_id' => array(
+							'type' => 'int',
+							'not null' => true,
+					),
+					'rental_start_time' => array(
+							'type' => 'int',
+							'not null' => true,
+					),
+					'uid' => array(
+							'type' => 'int',
+							'not null' => true
+					),
+			),
+			'primary key' => array('rentable_item_id', 'rental_start_time', 'uid')
+	
+	);
+	
+	$schema['season'] = array(
+			'description' => 'Seaon start times, end times, and names.',
+			'fields' => array( // List of attributes/columns
+					'start_time' => array(
+							'type' => 'int',
+							'not null' => true,
+					),
+					'end_time' => array(
+							'type' => 'int',
+							'not null' => true,
+					),
+					'name' => array(
+							'type' => 'varchar',
+							'length' => 60,
+							//'not null' => true,
+					),
+			),
+			'primary key' => array('start_time')
+	
+	);
+	
+	$schema['boat_rental_item'] = array(
+			'description' => 'Information pertaining to boats and boat accessories',
+			'fields' => array( // List of attributes/columns
+					'id' => array(
+							'type' => 'int',
+							'not null' => true,
+					),
+					'type' => array(
+							'type' => 'varchar',
+							'length' => 60,
+							//'not null' => true,
+					),
+					'name' => array(
+							'type' => 'varchar',
+							'length' => 60,
+							'not null' => true,
+					),
+					'capacity' => array(
+							'type' => 'int',
+							'not null' => true,
+					),
+			),
+			'primary key' => array('id')
+	
+	);
+
+	$schema['rentable_item'] = array(
+			'description' => 'Superclass for all rentable items',
+			'fields' => array( // List of attributes/columns
+					'id' => array(
+							'type' => 'int',
+							'not null' => true,
+					),
+					'is_active' => array(
+							'type' => 'int',
+							'size' => 'tiny',
+							'not null' => true,
+							'default' => true,
+					),
+			),
+			'primary key' => array('id')
+	
+	);
+	
+	$schema['cottage_price_guide'] = array(
+			'description' => 'Master table of ids for accessing nightly and extra adult costs for cottages.',
+			'fields' => array( // List of attributes/columns
+					'id' => array(
+							'type' => 'int',
+							'not null' => true,
+					),
+			),
+			'primary key' => array('id')
+	
+	);
+	
+	$schema['cottage'] = array(
+			'description' => 'Information about cottages, with their id.',
+			'fields' => array( // List of attributes/columns
+					'id' => array(
+							'type' => 'int',
+							'not null' => true,
+					),
+					'max_adults' => array(
+							'type' => 'int',
+							'not null' => true,
+							//'default => 50, //???
+					),
+					'base_adults' => array(
+							'type' => 'int',
+							'not null' => true,
+					),
+					'number' => array(
+							'type' => 'int',
+							'not null' => true,
+					),
+					'class_name' => array(
+							'type' => 'varchar',
+							'length' => 60,
+							//'not null' => true,
+					),
+			),
+			'primary key' => array('id')
+	
+	);
+	
+	$schema['cottage_extra_adult_cost'] = array(
+			'description' => 'Cost to have extra adults staying in a cottage, by night',
+			'fields' => array( // List of attributes/columns
+					'price_guide_id' => array(
+							'type' => 'int',
+							'not null' => true,
+					),
+					'how_many_nights' => array(
+							'type' => 'int',
+							'not null' => true,
+					),
+					'cost' => array(
+							'type' => 'int',
+							'not null' => true,
+					),
+			),
+			'primary key' => array('price_guide_id')
+	
+	);
+	
+	$schema['boat_rental_item_rate'] = array(
+			'description' => 'Rental rates for boats and boat accessories',
+			'fields' => array( // List of attributes/columns
+					'start_time' => array(
+							'type' => 'int',
+							'not null' => true,
+					),
+					'duration' => array(
+							'type' => 'int',
+							'not null' => true,
+					),
+					'item_id' => array(
+							'type' => 'int',
+							'not null' => true,
+					),
+					'price' => array(
+							'type' => 'int',
+							//'not null' => true,
+							'default' => 0,
+					),
+					'end_time' => array(
+							'type' => 'int',
+					),
+			),
+			'primary key' => array('start_time', 'duration', 'item_id')
+	
+	);
+	
+	$schema['priced_for'] = array(
+			'description' => 'Relationship between cottages, season, and cost guides.',
+			'fields' => array( // List of attributes/columns
+					'cottage_id' => array(
+							'type' => 'int',
+							'not null' => true,
+					),
+					'season_start_time' => array(
+							'type' => 'int',
+							//'size' => 'large',
+							'not null' => true,
+					),
+					'cost_guide_id' => array(
+							'type' => 'int',
+							'not null' => true,
+					),
+			),
+			'primary key' => array('cottage_id', 'season_start_time', 'cost_guide_id')
+	
+	);
+	
+	$schema['cottage_nightly_Cost'] = array(
+			'description' => 'Cost to book a cottage by number of nights',
+			'fields' => array( // List of attributes/columns
+					'price_guide_id' => array(
+							'type' => 'int',
+							'not null' => true,
+					),
+					'rebook_discount' => array(
+							'type' => 'int',
+							//'not null' => true,
+							'default' => 0,
+					),
+					'how_many_nights' => array(
+							'type' => 'int',
+							'not null' => true,
+					),
+					'cost' => array(
+							'type' => 'int',
+							'not null' => true,
+					),
+			),
+			'primary key' => array('price_guide_id')
+				
+	);
+	
+	
 	
 	return $schema;
 }
