@@ -297,7 +297,8 @@ function create_season_form_submit($form, $form_state){
 	scc_debug($seasonVals);
 	
 	$s = new Season();
-	$s->addSeason($seasonVals);
+	$s->setCopy($seasonVals);
+	$s->storeToDB();
 	
 }
 
