@@ -158,9 +158,11 @@ function home_form($form, &$form_state) {
 	
 	if(user_is_logged_in()) {
 		if($user->hasRole('Renter')) {
-			drupal_goto('renter');
-		} else if($user->hasRole('Manager')) {
-			drupal_goto('manager');
+			drupal_goto('scc/renter');
+		} 	
+		if($user->hasRole('Manager')) 
+		{
+			drupal_goto('scc/manager');
 		}
 	}
 	
@@ -207,7 +209,9 @@ function home_form($form, &$form_state) {
 	
 	return $form;
 }
-
+/**
+ * Creates a new account in both the drupal user table and the rental_account table
+ */
 function home_form_submit($form, $form_state) {
 	
 	$email = $form_state['values']['email'];
