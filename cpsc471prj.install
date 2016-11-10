@@ -46,8 +46,8 @@ function cpsc471prj_schema() {
 				'type' => 'int',
 				'not null' => true,
 			),
-			'primary key' => array('column_walrus', 'column_haberdashery')
 		),
+		'primary key' => array('column_walrus', 'column_haberdashery')
 			
 	);
 	
