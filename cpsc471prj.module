@@ -1,91 +1,112 @@
 <?php
 
-//includes other.php
-module_load_include('php', 'cpsc471prj', 'inlcudes/other');
 
-	function cpsc471prj_menu(){
-		$items = array();
+function cpsc471prj_menu(){
+	$items = array();
+	
+	$item['/'] = array (
+		'title' => 'Home',
+		'description' => 'Main page',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array (
+			'home_form',	
+		),
+		'menu_name' => 'cpsc',
+	);
+	
+	$items['test/%'] = array (
+		'title' => 'Test',
+		'description' => 'This is a test',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array (
+				'myform', 1,
+		),
+		'access callback' => true,
 		
-		$items['test/%'] = array (
-			'title' => 'Test',
-			'description' => 'This is a test',
-			'page callback' => 'drupal_get_form',
-			'page arguments' => array (
-					'myform', 1,
-			),
-			'access callback' => true,
+	);
+	return $items;
+}
+
+function home_form($form, &$form_state) {
+	
+}
+
+
+
+
+
+
+////////////////////////////
+//Demo code below this line
+////////////////////////////
+
+function myform($form, &$form_state, $number) {
+	
+	db_query("SELECT * FROM Users");
+	
+
+	if(isset($form_state['storage']['save_value'])) {
+		$number = $form_state['storage']['save_value'];
+		$number *= 2;
+	}
+	
+	
+	$form['ex'] = array (
+		'#prefix' => '<div id="my_div">',
+		'#markup' => $number,	
+		'#suffix' => '</div>',
+	);
+	
+	$form_state['storage']['save_value'] = intval($number);
+	
+	$form['button'] = array (
+		'#type' => 'fieldset',
+		'#title' => 'fred',
+		
+		
 			
-		);
-		return $items;
-	}
+		
+			
+		'button2' => array (
+			'#type' => 'button',
+			'#value' => 'fish',
+				'#ajax' => array (
+						'callback' => 'my_ajax',
+						'wrapper' => 'my_div',
+				),
+		),
+	);
 	
-	function myform($form, &$form_state, $number) {
-		
-		db_query("SELECT * FROM Users");
-		
+	$form['textfield6'] = array (
+		'#type' => 'textfield',	
+	);
 	
-		if(isset($form_state['storage']['save_value'])) {
-			$number = $form_state['storage']['save_value'];
-			$number *= 2;
-		}
-		
-		
-		$form['ex'] = array (
-			'#prefix' => '<div id="my_div">',
-			'#markup' => $number,	
-			'#suffix' => '</div>',
-		);
-		
-		$form_state['storage']['save_value'] = intval($number);
-		
-		$form['button'] = array (
-			'#type' => 'fieldset',
-			'#title' => 'fred',
+	$form['submit'] = array (
+		'#type' => 'submit',
+		'#value' => 'Submit',
 			
 			
-				
-			
-				
-			'button2' => array (
-				'#type' => 'button',
-				'#value' => 'fish',
-					'#ajax' => array (
-							'callback' => 'my_ajax',
-							'wrapper' => 'my_div',
-					),
-			),
-		);
-		
-		$form['textfield6'] = array (
-			'#type' => 'textfield',	
-		);
-		
-		$form['submit'] = array (
-			'#type' => 'submit',
-			'#value' => 'Submit',
-				
-				
-			'#validate' => array('validate'),
-			'#submit' => array('submit'),
-		);
-		
-		return $form;
-	}
+		'#validate' => array('validate'),
+		'#submit' => array('submit'),
+	);
 	
-	function validate($form, &$form_state) {
-		$form_state['values']['textfield6'] = intval($form_state['values']['textfield6'] );
-		
-		if($form_state['values']['textfield6'] == 0) {
-			form_set_error('textfield6', "stop");
-		}
-	}
+	return $form;
+}
+
+function validate($form, &$form_state) {
+	$form_state['values']['textfield6'] = intval($form_state['values']['textfield6'] );
 	
-	function submit($form, &$form_state) {
-		drupal_set_message($form_state['values']['textfield6']);
-		drupal_goto('');
+	if($form_state['values']['textfield6'] == 0) {
+		form_set_error('textfield6', "stop");
 	}
-	
-	function my_ajax($form, $form_state) {
-		return $form['ex'];
-	}
+}
+
+function submit($form, &$form_state) {
+	drupal_set_message($form_state['values']['textfield6']);
+	drupal_goto('');
+}
+
+function my_ajax($form, $form_state) {
+	return $form['ex'];
+}
 ?>
