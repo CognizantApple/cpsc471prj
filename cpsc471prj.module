@@ -1,5 +1,7 @@
 <?php
 module_load_include('php', 'cpsc471prj', 'includes/User');
+module_load_include('php', 'cpsc471prj', 'includes/Renter');
+
 
 /**
  * Implements hook_permission()
@@ -168,12 +170,6 @@ function home_form($form, &$form_state) {
 	
 	drupal_set_title('Create Account');
 	
-	$form['username'] = array (
-		'#title' => 'Username',
-		'#type' => 'textfield',
-		'#required' => true,
-	);
-	
 	$form['name'] = array (
 		'#title' => 'Name',
 		'#type' => 'textfield',
@@ -225,6 +221,9 @@ function home_form_validate($form, $form_state){
 	if(!User::isPhoneNumberValid($form_state['values']['phone_number'])){
 		form_set_error('phone_number', "Invalid Phone number Format.");
 	}
+	if(!User::isEmailValid($form_state['values']['email'])){
+		form_set_error('email', "Invalid email format");
+	}
 }
 
 
@@ -251,22 +250,22 @@ function home_form_submit($form, $form_state) {
 	$DrupalUser = user_save('', $newUserForDrupal);
 	
 	$NewRenterInfo = array(
-			'account_id' => $DrupalUser['uid'],
+			'account_uid' => $DrupalUser->uid,
 			'name' => $name,
 			'id_adult' => 1,
 	);
 	
-	$NewRenter = new Renter($NewRenterInfo);
+	$NewRenter = new Renter();
+	$NewRenter->AddNewRenter($NewRenterInfo);
 	
 	$NewUserInfo = array(
-		'uid' => $DrupalUser['uid'],
+		'uid' => $DrupalUser->uid,
 		'credit_card' => $credit_card,
 		'phone' => $phone,
-		'primary_renter_id' => $NewRenter['id'],
+		'primary_renter_id' => $NewRenter->id,
 	);
 	
 	$YourGuy = new User();
-	
 	$YourGuy->AddNewUser($NewUserInfo);
 	
 }

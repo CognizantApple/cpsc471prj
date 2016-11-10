@@ -57,17 +57,6 @@ function createRoles() {
 }
 
 /**
- * Implements hook_uninstall()
- * 
- * Called when the module is uninstalled
- */
-function cpsc471prj_uninstall() {
-	//just delete the module roles for safety
-	user_role_delete('Renter');
-	user_role_delete('Manager');
-}
-
-/**
  * Implements hook_schema()
  * 
  * Describes the database layout to drupal

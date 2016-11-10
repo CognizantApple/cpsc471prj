@@ -100,4 +100,8 @@ class User {
 		}
 		return false;
 	}
+	
+	public static function isEmailValid($emailInQuestion){
+		return filter_var($emailInQuestion, FILTER_VALIDATE_EMAIL);
+	}
 }
