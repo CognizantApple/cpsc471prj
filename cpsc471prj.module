@@ -1,5 +1,7 @@
 <?php
 module_load_include('php', 'cpsc471prj', 'includes/User');
+module_load_include('php', 'cpsc471prj', 'includes/Renter');
+
 
 /**
  * Implements hook_permission()
@@ -182,12 +184,6 @@ function home_form($form, &$form_state) {
 	
 	drupal_set_title('Create Account');
 	
-	$form['username'] = array (
-		'#title' => 'Username',
-		'#type' => 'textfield',
-		'#required' => true,
-	);
-	
 	$form['name'] = array (
 		'#title' => 'Name',
 		'#type' => 'textfield',
@@ -212,6 +208,11 @@ function home_form($form, &$form_state) {
 		'#required' => true,
 	);
 	
+	$form['phone_number'] = array (
+			'#title' => 'Phone number',
+			'#type' => 'textfield',
+			'#required' => true,
+	);
 	
 	$form['submit'] = array (
 		'#type' => 'submit',
@@ -219,10 +220,26 @@ function home_form($form, &$form_state) {
 		'#submit' => array(
 				'home_form_submit'
 		),
+		'#validate' => array(
+			'home_form_validate',
+		)
 	);
 	
 	return $form;
 }
+
+function home_form_validate($form, $form_state){
+	if(!User::isCreditCardValid($form_state['values']['credit_card'])){
+		form_set_error('credit_card', "Invalid Credit Card Format.");
+	}
+	if(!User::isPhoneNumberValid($form_state['values']['phone_number'])){
+		form_set_error('phone_number', "Invalid Phone number Format.");
+	}
+	if(!User::isEmailValid($form_state['values']['email'])){
+		form_set_error('email', "Invalid email format");
+	}
+}
+
 
 /**
  * Creates a new account in both the drupal user table and the rental_account table
@@ -233,19 +250,47 @@ function home_form_submit($form, $form_state) {
 	$password = $form_state['values']['password'];
 	$name = $form_state['values']['name'];
 	$credit_card = $form_state['values']['credit_card'];//Not saved yet
+	$phone = $form_state['values']['phone_number'];
 	
-	$newUser = array(
-			'name' => $email,
-			'pass' => $password,
-			'mail' => $email,
-			'status' => 1,
-			'init' => $email,
-			'is_new' => true,
+	$newUserForDrupal = array(
+		'name' => $email,
+		'pass' => $password,
+		'mail' => $email,
+		'status' => 1,
+		'init' => $email,
+		'is_new' => true,
 	);
 	
-	user_save('', $newUser);
+	$DrupalUser = user_save('', $newUserForDrupal);
+	
+	$NewRenterInfo = array(
+			'account_uid' => $DrupalUser->uid,
+			'name' => $name,
+			'id_adult' => 1,
+	);
+	
+	$NewRenter = new Renter('new');
+	
+	
+	$NewRenter->setCopy($NewRenterInfo);
+	$NewRenter->storeToDB();
+	
+	
+	//$NewRenter->AddNewRenter($NewRenterInfo);
+	
+	$NewUserInfo = array(
+		'uid' => $DrupalUser->uid,
+		'credit_card' => $credit_card,
+		'phone' => $phone,
+		'primary_renter_id' => $NewRenter->getProperty('id'),
+	);
+	
+	$YourGuy = new User();
+	$YourGuy->AddNewUser($NewUserInfo);
 	
 }
+
+
 
 function manager_home_form($form, &$form_state) {
 	$form['test'] = array (
