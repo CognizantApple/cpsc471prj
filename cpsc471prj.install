@@ -1,6 +1,11 @@
 <?php
 function cpsc471prj_install() {
-	
+	$menu = array (
+		'menu_name' => 'cpsc',
+		'title' => 'Scotch Creek Cottages',
+		'description' => '',
+	);
+	menu_save($menu);
 }
 
 function cpsc471prj_uninstall() {
