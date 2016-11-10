@@ -1,14 +1,40 @@
 <?php
-module_load_include('php', 'cpsc471prj', 'includes/tools');
+module_load_include('php', 'cpsc471prj', 'includes/User');
 
-function cpsc471prj_permissions() {
-	
+/**
+ * Implements hook_permission()
+ * 
+ * Sets the different permissions that drupal will use for building menus
+ * 
+ * this prevents renters from seeing manager links,
+ * and  managers from seeing renter links
+ * @return string[][]
+ * 		The permission descriptions
+ */
+function cpsc471prj_permission() {
+	return array (
+		'renter' => array (
+			'title' => 'Renter',
+			'description' => 'Permission to check if user is renter'
+		),
+		'manager' => array (
+			'title' => 'Manager',
+			'description' => 'Permission to check if user is manager'
+		),
+	);
 }
 
+/**
+ * Implements hook_menu()
+ * 
+ * Describes the various paths for accessing pages of the website
+ * 
+ * @return array
+ */
 function cpsc471prj_menu(){
 	$items = array();
 	
-	$items['cpsc'] = array (
+	$items['scc'] = array (
 		'title' => 'Home',
 		'description' => 'Main page',
 		'page callback' => 'drupal_get_form',
@@ -16,8 +42,40 @@ function cpsc471prj_menu(){
 			'home_form',	
 		),
 		'menu_name' => 'cpsc',
-		'access callback' => true,
+		'access callback' => 'cpsc471_access',
+		'access arguments' => array (
+		
+		),
 	);
+	
+	$items['scc/renter'] = array (
+		'title' => 'Renter',
+		'description' => 'Rental main page',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array (
+			'renter_home_form',
+		),
+		'menu_name' => 'cpsc',
+		'access callback' => 'cpsc471_access',
+		'access arguments' => array (
+			'renter'
+		),
+	);
+	
+	$items['scc/manager'] = array (
+		'title' => 'Manager',
+		'description' => 'Manager main page',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array (
+				'manager_home_form',
+		),
+		'menu_name' => 'cpsc',
+		'access callback' => 'cpsc471_access',
+		'access arguments' => array (
+				'manager'
+		),
+	);
+	
 	
 	$items['test/%'] = array (
 		'title' => 'Test',
@@ -33,6 +91,29 @@ function cpsc471prj_menu(){
 }
 
 /**
+ * Access callback for menu building
+ * 
+ * Accepts n argument, where arguments are permission names
+ * 
+ * @return boolean
+ * 		true if the user has all the provided permissions,
+ * 		false otherwise
+ */
+function cpsc471_access() {
+	//get the arguments provided
+	$arguments = func_get_args();
+	$user = new User();
+	//check each argument
+	foreach($arguments as $permission) {
+		if(!$user->hasPermission($permission)) {
+			return false;
+		}
+	}
+	
+	return true;
+}
+
+/**
  * Main router for the website
  * 
  * If user is logs in checks them for manager role and redirects there,
@@ -44,20 +125,80 @@ function cpsc471prj_menu(){
  */
 function home_form($form, &$form_state) {
 	
+	$user = new User();
+	
 	if(user_is_logged_in()) {
-		if(user_has_role()) {
-			
+		if($user->hasRole('Renter')) {
+			drupal_goto('renter');
+		} else if($user->hasRole('Manager')) {
+			drupal_goto('manager');
 		}
 	}
 	
-	global $user;
+	drupal_set_title('Create Account');
+	
+	$form['username'] = array (
+		'#title' => 'Username',
+		'#type' => 'textfield',
+		'#required' => true,
+	);
+	
+	$form['name'] = array (
+		'#title' => 'Name',
+		'#type' => 'textfield',
+		'#required' => true,
+	);
+	
+	$form['email'] = array (
+		'#title' => 'eMail',
+		'#type' => 'textfield',
+		'#required' => true,
+	);
+	
+	$form['password'] = array (
+		'#title' => 'Password',
+		'#type' => 'textfield',
+		'#required' => true,
+	);
+	
+	$form['credit_card'] = array (
+		'#title' => 'Credit Card Number',
+		'#type' => 'textfield',
+		'#required' => true,
+	);
 	
 	
-	
-	
+	$form['submit'] = array (
+		'#type' => 'submit',
+		'#value' => 'Create Account',
+		'#submit' => array(
+				'home_form_submit'
+		),
+	);
 	
 	return $form;
 }
+
+function home_form_submit($form, $form_state) {
+	drupal_set_message('TO DO this function');
+}
+
+function manager_home_form($form, &$form_state) {
+	$form['test'] = array (
+			'#markup' => 'manager',
+	);
+
+	return $form;
+}
+
+function renter_home_form($form, &$form_state) {
+	$form['test'] = array (
+		'#markup' => 'renter',	
+	);
+
+	return $form;
+}
+
 
 
 
@@ -67,6 +208,20 @@ function home_form($form, &$form_state) {
 ////////////////////////////
 //Demo code below this line
 ////////////////////////////
+
+/**
+ * Prints all arguments as drupal messages
+ */
+function scc_debug() {
+	
+	$args = func_get_args();
+	
+	foreach($args as $arg) {
+		drupal_set_message('<pre>' . print_r($arg, true) . '</pre>', 'warning');
+	}
+	
+}
+
 
 function myform($form, &$form_state, $number) {
 	
