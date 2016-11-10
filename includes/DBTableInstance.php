@@ -70,6 +70,7 @@ abstract class DBTableInstance {
 	 * 		If the instance already exists in the database
 	 */
 	public function storeToDB() {
+<<<<<<< HEAD
 		
 		$toStore = $this->getPersistentNotNull();
 		
@@ -257,6 +258,147 @@ abstract class DBTableInstance {
 		}
 		
 		return $persistent;
+=======
+		$vars = get_object_vars($this);
+		
+		$toStore = array ();
+		
+		foreach($vars as $name => $value) {
+			if(substr($name, strlen($name) - 2) == '_p') {
+				$name = substr($name, 0, strlen($name) - 2);
+				$toStore[$name] = $value;
+			}
+		}
+		
+		$sql = 'INSERT INTO ' . $this->tableName;
+		
+		$colNames = '(';
+		$colValues = '(';
+		$commaTrip = false;
+		
+		foreach($toStore as $name => $value) {
+			if($commaTrip) {
+				$colNames .= ', ';
+				$colValues .= ', ';
+			}
+			
+			$colNames .= $name;
+			$colValues .= $value;
+			
+			$commaTrip = true;
+		}
+		
+		$colNames .= ')';
+		$colValues .= ')';
+		
+		$sql = $sql . ' ' . $colNames . ' VALUES ' . $colValues;
+		
+		db_query($sql);
+	}
+	
+	/**
+	 * Updates the instance in the database
+	 * using the values in the object to find an instance
+	 * and the values in $toUpdate as replacements,
+	 * 
+	 * Replaces member variables with updated values on success
+	 * 
+	 * @param array $toUpdate
+	 */
+	public function updateInDB($toUpdate = array()) {
+		
+	}
+	
+	/**
+	 * Attempts to load an instance from the database
+	 * using the currently set members, loads the values into this object
+	 * 
+	 * @return bool
+	 * 		true on success, false on failure
+	 */
+	public function getFromDB() {
+		
+	}
+	
+	
+	/**
+	 * Setter for all member variables
+	 * @param string $key
+	 * 		The member to access
+	 * @param mixed $value
+	 * 		The value to set there
+	 */
+	public function setProperty($key, $value) {
+		if(property_exists($this, $key)) {
+			$this->$key = $value;
+			return;
+		}
+		
+		$keyP = $key . '_p';
+		//add _p to $key and try again
+		if(property_exists($this, $keyP)) {
+			$this->$keyP = $value;
+			return;
+		}
+		
+		//if the key didn't exist, throw an exception
+		throw new DBException("$key doesn't exist in the object");
+	}
+	
+	/**
+	 * Getter for all member variables
+	 * @param string $key
+	 * 		The member to access
+	 * @return mixed
+	 * 		The value of said member
+	 */
+	public function getProperty($key) {
+		if(property_exists($this, $key)) {
+			return $this->$key;
+		}
+		
+		$keyP = $key . '_p';
+		//add _p to $key and try again	
+		if(property_exists($this, $keyP)) {
+			return $this->$keyP;
+		}
+		
+		//otherwise throw an exception
+		throw new DBException("$key doesn't exist in the object.");
+	}
+	
+	/**
+	 * Creates an associative array of all member variables
+	 * @return array
+	 */
+	public function toArray() {
+		return get_object_vars($this);
+	}
+	
+	/**
+	 * Sets this object to a copy of an associative array
+	 * or another object
+	 * @param array | object $toCopy
+	 * 		The object to copy
+	 * 		Either another instance of this class,
+	 * 		or an associative array of $member => $value
+	 */
+	public function setCopy($toCopy) {
+		//convert to array if required
+		if(is_object($toCopy)) {
+			$toCopy = $toCopy->toArray();
+		}
+		
+		//iterate over the things to copy
+		foreach($toCopy as $key => $value) {
+			try {
+				$this->setProperty($key, $value);
+			} catch (DBException $e) {
+				//key didn't exist or wasn't a valid variable name
+				//just continue with the next one
+			}
+		}
+>>>>>>> branch 'login_info' of https://github.com/CognizantApple/cpsc471prj.git
 	}
 	
 	
