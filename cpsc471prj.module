@@ -34,7 +34,7 @@ function cpsc471prj_permission() {
 function cpsc471prj_menu(){
 	$items = array();
 	
-	$items['cpsc'] = array (
+	$items['scc'] = array (
 		'title' => 'Home',
 		'description' => 'Main page',
 		'page callback' => 'drupal_get_form',
@@ -48,8 +48,8 @@ function cpsc471prj_menu(){
 		),
 	);
 	
-	$items['renter'] = array (
-		'title' => 'Home',
+	$items['scc/renter'] = array (
+		'title' => 'Renter',
 		'description' => 'Rental main page',
 		'page callback' => 'drupal_get_form',
 		'page arguments' => array (
@@ -62,18 +62,18 @@ function cpsc471prj_menu(){
 		),
 	);
 	
-	$items['manager'] = array (
-			'title' => 'Home',
-			'description' => 'Manager main page',
-			'page callback' => 'drupal_get_form',
-			'page arguments' => array (
-					'manager_home_form',
-			),
-			'menu_name' => 'cpsc',
-			'access callback' => 'cpsc471_access',
-			'access arguments' => array (
-					'manager'
-			),
+	$items['scc/manager'] = array (
+		'title' => 'Manager',
+		'description' => 'Manager main page',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array (
+				'manager_home_form',
+		),
+		'menu_name' => 'cpsc',
+		'access callback' => 'cpsc471_access',
+		'access arguments' => array (
+				'manager'
+		),
 	);
 	
 	
@@ -135,14 +135,52 @@ function home_form($form, &$form_state) {
 		}
 	}
 	
-	$form['test'] = array (
-			'#markup' => 'home',
+	drupal_set_title('Create Account');
+	
+	$form['username'] = array (
+		'#title' => 'Username',
+		'#type' => 'textfield',
+		'#required' => true,
+	);
+	
+	$form['name'] = array (
+		'#title' => 'Name',
+		'#type' => 'textfield',
+		'#required' => true,
+	);
+	
+	$form['email'] = array (
+		'#title' => 'eMail',
+		'#type' => 'textfield',
+		'#required' => true,
+	);
+	
+	$form['password'] = array (
+		'#title' => 'Password',
+		'#type' => 'textfield',
+		'#required' => true,
+	);
+	
+	$form['credit_card'] = array (
+		'#title' => 'Credit Card Number',
+		'#type' => 'textfield',
+		'#required' => true,
 	);
 	
 	
-	
+	$form['submit'] = array (
+		'#type' => 'submit',
+		'#value' => 'Create Account',
+		'#submit' => array(
+				'home_form_submit'
+		),
+	);
 	
 	return $form;
+}
+
+function home_form_submit($form, $form_state) {
+	drupal_set_message('TO DO this function');
 }
 
 function manager_home_form($form, &$form_state) {
