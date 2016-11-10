@@ -39,48 +39,5 @@ function cpsc471prj_schema() {
 		'primary key' => array ('uid')
 	);
 	
-	$schema['Andy_Table'] = array (
-		'description' => 'The table of andys random shite',
-		'fields' => array (
-			'years_old' => array (
-				'type' => 'int',
-				'not null' => true
-			),
-			'Name' => array (
-				'type' => 'varchar',
-				'length' => 60,
-				'not null' => true,
-				'default' => 'oondy',
-			),
-			'phone' => array (
-				'type' => 'varchar',
-				'length' => 60,
-				'not null' => true,	
-			),
-			'primary_id' => array (
-				'type' => 'int',
-				'not null' => true,	
-			),
-		),
-		'primary key' => array ('primary_id')
-	);
-	
-	$schema['TableOfJosh'] = array(
-		'description' => 'Heed the flies as the scream',
-		'fields' => array( // List of attributes/columns
-			'column_walrus' => array(
-				'type' => 'varchar',
-				'length' => 1,
-				'not null' => true, 
-			),
-			'column_haberdashery' => array(
-				'type' => 'int',
-				'not null' => true,
-			),
-		),
-		'primary key' => array('column_walrus', 'column_haberdashery')
-			
-	);
-	
 	return $schema;
 }
