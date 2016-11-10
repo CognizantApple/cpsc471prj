@@ -11,6 +11,17 @@ function cpsc471prj_install() {
 }
 
 /**
+ * Implements hook_uninstall()
+ *
+ * Called when the module is uninstalled
+ */
+function cpsc471prj_uninstall() {
+	//just delete the module roles for safety
+	user_role_delete('Renter');
+	user_role_delete('Manager');
+}
+
+/**
  * Creates the menu block for the module, must be manually enabled in structure->blocks
  * to be visible
  */
@@ -46,17 +57,6 @@ function createRoles() {
 }
 
 /**
- * Implements hook_uninstall()
- * 
- * Called when the module is uninstalled
- */
-function cpsc471prj_uninstall() {
-	//just delete the module roles for safety
-	user_role_delete('Renter');
-	user_role_delete('Manager');
-}
-
-/**
  * Implements hook_schema()
  * 
  * Describes the database layout to drupal
@@ -68,7 +68,7 @@ function cpsc471prj_schema() {
 		'description' => 'Table containing each renter and their information',
 		'fields' => array(
 			'id' => array(
-				'type' => 'int',
+				'type' => 'serial',
 				'not null' => true,
 			),
 			'account_uid' => array(
@@ -407,7 +407,7 @@ function cpsc471prj_schema() {
 	
 	);
 	
-	$schema['cottage_nightly_cost'] = array(
+	$schema['cottage_nightly_Cost'] = array(
 			'description' => 'Cost to book a cottage by number of nights',
 			'fields' => array( // List of attributes/columns
 					'price_guide_id' => array(
@@ -435,4 +435,5 @@ function cpsc471prj_schema() {
 	
 	
 	return $schema;
+
 }

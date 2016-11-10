@@ -1,5 +1,4 @@
 <?php
-include 'DBQuery.php';
 
 /**
  * Base class for instances from tables
@@ -90,7 +89,7 @@ abstract class DBTableInstance {
 			}
 			
 			$colNames .= $name;
-			$colValues .= $value;
+			$colValues .= '"' . $value . '"';
 			
 			$commaTrip = true;
 		}
