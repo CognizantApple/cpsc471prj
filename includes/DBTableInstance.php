@@ -90,7 +90,7 @@ abstract class DBTableInstance {
 			}
 			
 			$colNames .= $name;
-			$colValues .= $value;
+			$colValues .= '"' . $value . '"';
 			
 			$commaTrip = true;
 		}
