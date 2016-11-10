@@ -70,15 +70,11 @@ abstract class DBTableInstance {
 	 * 		If the instance already exists in the database
 	 */
 	public function storeToDB() {
-		$vars = get_object_vars($this);
 		
-		$toStore = array ();
+		$toStore = $this->getPersistentNotNull();
 		
-		foreach($vars as $name => $value) {
-			if(substr($name, strlen($name) - 2) == '_p') {
-				$name = substr($name, 0, strlen($name) - 2);
-				$toStore[$name] = $value;
-			}
+		if(count($toStore) == 0) {
+			throw new PDOException("No member variables have been set");
 		}
 		
 		$sql = 'INSERT INTO ' . $this->tableName;
@@ -117,7 +113,7 @@ abstract class DBTableInstance {
 	 * @param array $toUpdate
 	 */
 	public function updateInDB($toUpdate = array()) {
-		
+		//TODO
 	}
 	
 	/**
@@ -128,7 +124,26 @@ abstract class DBTableInstance {
 	 * 		true on success, false on failure
 	 */
 	public function getFromDB() {
+		$toSelect = $this->getPersistentNotNull();
 		
+		if(count($toSelect) == 0) {
+			throw new PDOException("No member variables have been set");
+		}
+		
+		if(count($toSelect))
+		
+		$sql = 'SELECT * FROM ' . $this->tableName . ' WHERE ';
+		
+		foreach($toSelect as $index => $value) {
+			$sql .= $index . '=' . $value . ' ';
+		}
+		
+		$result = db_query($sql);
+		
+		$this->setCopy($result);
+		
+		
+		return count($result) > 0;
 	}
 	
 	
@@ -209,6 +224,39 @@ abstract class DBTableInstance {
 				//just continue with the next one
 			}
 		}
+	}
+	
+	/**
+	 * Gets all member variables that end with _p
+	 */
+	private function getPersistentVars() {
+		$vars = get_object_vars($this);
+		
+		$persistent = array ();
+		
+		foreach($vars as $name => $value) {
+			if(substr($name, strlen($name) - 2) == '_p') {
+				$name = substr($name, 0, strlen($name) - 2);
+				$persistent[$name] = $value;
+			}
+		}
+		
+		return $persistent;
+	}
+	
+	/**
+	 * Gets all persistent variables that aren't null
+	 */
+	private function getPersistentNotNull() {
+		$persistent = $this->getPersistentVars();
+		
+		foreach($persistent as $index => $value) {
+			if($value === null) {
+				unset($persistent[$index]);
+			}
+		}
+		
+		return $persistent;
 	}
 	
 	
