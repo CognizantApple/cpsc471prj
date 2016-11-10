@@ -76,6 +76,35 @@ function cpsc471prj_menu(){
 		),
 	);
 	
+	$items['scc/manager/seasons'] = array (
+		'title' => 'View Seasons',
+		'description' => 'Manager main page',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array (
+				'manager_view_seasons_form',
+		),
+		'menu_name' => 'cpsc',
+		'access callback' => 'cpsc471_access',
+		'access arguments' => array (
+				'manager'
+		),
+	);
+	
+	$items['scc/manager/seasons/new'] = array (
+			'title' => 'Create Season',
+			'description' => 'Manager main page',
+			'page callback' => 'drupal_get_form',
+			'page arguments' => array (
+					'manager_create_seasons_form',
+			),
+			'menu_name' => 'cpsc',
+			'access callback' => 'cpsc471_access',
+			'access arguments' => array (
+					'manager'
+			),
+			'type' => MENU_LOCAL_ACTION
+	);
+	
 	
 	$items['test/%'] = array (
 		'title' => 'Test',
