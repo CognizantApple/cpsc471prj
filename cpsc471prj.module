@@ -473,4 +473,3 @@ function submit($form, &$form_state) {
 function my_ajax($form, $form_state) {
 	return $form['ex'];
 }
-?>
