@@ -1,5 +1,6 @@
 <?php
 module_load_include('php', 'cpsc471prj', 'includes/User');
+module_load_include('php', 'cpsc471prj', 'includes/Season');
 module_load_include('php', 'cpsc471prj', 'includes/Renter');
 
 
@@ -306,6 +307,60 @@ function manager_view_seasons_form($form, &$form_state) {
 
 function manager_create_seasons_form($form, &$form_state) {
 	
+	$date = '2016-01-01';
+	$format = 'Y-m-d';
+	/*
+	 * 
+		'#title' => 'Password',
+		'#type' => 'textfield',
+		'#required' => true,
+	 */
+	// gather list of information needed for a season
+	$form['name'] = array(
+			'#title' => 'Season name',
+			'#type' => 'textfield',
+			'#required' => true,
+	);
+	$form['start_time'] = array(
+			'#title' => 'Start of season',
+			'#type' => 'date_popup',
+			'#default_value' => $date,
+			'#date_format' => $format,
+			'#required' => true,
+	);
+	$form['end_time'] = array(
+			'#title' => 'End of season',
+			'#type' => 'date_popup',
+			'#default_value' => $date,
+			'#date_format' => $format,
+			'#required' => true,
+	);
+	
+	// call function which adds the form contents to the seasons DB
+	$form['submit'] = array (
+			'#type' => 'submit',
+			'#value' => 'Add Season',
+			'#submit' => array(
+					'create_season_form_submit'
+			),
+	);
+	
+	return $form;
+}
+
+function create_season_form_submit($form, $form_state){
+
+	$seasonVals = array(
+			'name' => $form_state['values']['name'],
+			'start' => strtotime($form_state['values']['start_time']),
+			'end' => strtotime($form_state['values']['end_time']),
+	);
+	scc_debug($seasonVals);
+
+	$s = new Season($seasonVals);
+	$s->setCopy($seasonVals);
+	$s->storeToDB();
+
 }
 
 /**
