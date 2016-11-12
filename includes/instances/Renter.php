@@ -1,6 +1,6 @@
 <?php
-module_load_include("php", "cpsc471prj", "includes/DBConf");
-module_load_include("php", "cpsc471prj", "includes/DBTableInstance");
+module_load_include("php", "cpsc471prj", "includes/database/DBConf");
+module_load_include("php", "cpsc471prj", "includes/database/DBTableInstance");
 
 class Renter extends DBTableInstance{
 	
@@ -13,32 +13,10 @@ class Renter extends DBTableInstance{
 	/**
 	 * Does nothing
 	 */
-	public function Renter($type = 'new', $data = array()){
+	public function __construct($type = 'new', $data = array()){
 		$this->tableName = DBConf::$renter;
 		parent::__construct($type, $data);
 	}
-	
-	public function AddNewRenter($NewRenterInfo){
-		$SQLQuery = "INSERT INTO ".DBConf::$renter . ' (';
-		
-		$values = '';
-		
-		foreach($NewRenterInfo as $column => $info) {
-			$SQLQuery .= $column . ',';	
-			$values .= $info . ',';
-		}
-		$SQLQuery = substr($SQLQuery, 0, strlen($SQLQuery) - 1);
-		$values = substr($values, 0, strlen($values) - 1);
-		
-		$SQLQuery .= ' ) VALUES (' . $values . ')';
-		try{
-			db_query($SQLQuery);
-		} catch(PDOException $e){
-			drupal_set_message("Excpetion thrown while trying to add a new renter to the table.", 'error');
-		}
-	}
-	
-	
 	
 	
 }

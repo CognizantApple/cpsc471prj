@@ -1,55 +1,75 @@
 <?php
+module_load_include("php", "cpsc471prj", "includes/database/DBTableInstance");
+
 /**
  * Class for checking user access
  * Corresponds to the Rental_Account
  * @author Patrick
  *
  */
-class User {
+class User extends DBTableInstance {
+	
+	protected $uid_p;
+	protected $name_p;
+	protected $mail_p;
+	protected $pass_p;
+	
 	
 	/**
 	 * Does nothing
 	 */
-	public function User() {}
-	
-	/**
-	 * Adds the new data to the user. Assumes $NewUserData has the proper variables
-	 * Assumes that the information has been checked for validity
-	 */
-	public function AddNewUser($NewUserData){
+	public function __construct() {
+		$this->tableName = 'users';
 		
-	}
-	
-	/**
-	 * Get the current user's UID
-	 * @throws Exception
-	 * 		If no user is logged in
-	 */
-	public function getUID() {	
-		if(!user_is_logged_in()) {
-			throw new Exception("User not logged in");
+		if(user_is_logged_in()) {
+			global $user;
+			parent::__construct('standard', array('uid' => $user->uid));
+		} else {
+			parent::__construct('new', array());
 		}
 		
-		global $user;
-		
-		return $user->uid;
 	}
 	
 	/**
-	 * Get the current users Email address
-	 * @throws Exception
-	 * 		If no user is logged in
+	 * Creates a new drupal user from the provided info
 	 */
-	public function getEmail() {
-		if(!user_is_logged_in()) {
-			throw new Exception("User not logged in");
-		}
+	public function create(){
+		$newUserForDrupal = array(
+			'name' => $this->name_p,
+			'pass' => $this->pass_p,
+			'mail' => $this->mail_p,
+			'status' => 1,
+			'init' => $this->mail_p,
+			'is_new' => true,
+		);
 		
-		global $user;
-		
-		return $user->email;
+		user_save('', $newUserForDrupal);
+		$this->pass_p = null; //it will have been hashed
+		$this->getFromDB();//reload self
 	}
 	
+	/**
+	 * Checks if there is a user currently logged in
+	 * @return bool
+	 * 		true if the current user is logged in,
+	 * 		false otherwise
+	 */
+	public function loggedIn() {
+		return $this->uid_p !== null;
+	}
+	
+	/**
+	 * Logs the currently set  $name into drupal
+	 */
+	public function login() {	
+		$userTemp = user_load($this->uid_p);
+		if($userTemp !== false) {
+			global $user;
+			$user = $userTemp;
+			user_login_finalize();
+		} 	
+	}
+		
 	/**
 	 * Checks if a user has the provided role name
 	 *
@@ -69,6 +89,22 @@ class User {
 		return user_has_role(array_search($roleName, $roles), $user);
 	}
 	
+	public function setRole($roleName, $hasRole = true) {
+		global $user;
+		
+		$roles = $user->roles;
+		
+		$rid = array_search($roleName, user_roles());
+		
+		if($hasRole) {
+			$roles[$rid] = $roleName;
+		} else {
+			unset($roles[$rid]);
+		}
+		
+		user_save($user, array('roles' => $roles));	
+	}
+	
 	/**
 	 * Checks if a user has the provided permission
 	 *
@@ -82,26 +118,5 @@ class User {
 	 */
 	public function hasPermission($permissionName) {
 		return user_access($permissionName);
-	}
-	
-	public static function isCreditCardValid($numberInQuestion){
-		return is_numeric($numberInQuestion);
-	}
-	
-	public static function isPhoneNumberValid($numberInQuestion){
-		$numberInQuestion = str_replace(array('-', '(', ')', ' '), '', $numberInQuestion);
-		if(is_numeric($numberInQuestion)){
-			
-			$lengthOfString = strlen($numberInQuestion);
-			if($lengthOfString == 9 || $lengthOfString == 10){
-				
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	public static function isEmailValid($emailInQuestion){
-		return filter_var($emailInQuestion, FILTER_VALIDATE_EMAIL);
 	}
 }
