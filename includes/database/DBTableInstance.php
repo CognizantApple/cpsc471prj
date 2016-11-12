@@ -50,6 +50,9 @@ abstract class DBTableInstance {
 	 * 		<column_name> => <column_value>
 	 * 		all rows that match all of the provided names will be loaded
 	 * 		note that calling with the default argument will load all rows
+	 * 
+	 * @return DBTableInstance[]
+	 * 		The loaded results, 0 indexed
 	 */
 	public static function instanceLoadMultiple($data = array()) {
 		//get the class that called this
@@ -384,6 +387,8 @@ abstract class DBTableInstance {
 	
 	/**
 	 * Creates a new instance in the database if the current instance doesn't exist already
+	 * @return bool
+	 * 		true on success, false on failure
 	 */
 	public function create() {
 		if($this->existsInDB()) {
@@ -391,6 +396,7 @@ abstract class DBTableInstance {
 		}
 		
 		$this->storeToDB();
+		return true;
 	}
 	
 	

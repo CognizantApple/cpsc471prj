@@ -51,4 +51,20 @@ class Validator {
 	public static function isEmailValid($email){
 		return filter_var($email, FILTER_VALIDATE_EMAIL);
 	}
+	
+	/**
+	 * Checks that a string represents a positive integer
+	 * @param string $str
+	 * 		The string to check
+	 * @return bool
+	 * 		true if the string matches, false otherwise
+	 * 		
+	 */
+	public static function isPositive($str) {
+		if(!is_numeric($str)) {
+			return false;
+		}
+		
+		return intval($str) >= 0;
+	}
 }
