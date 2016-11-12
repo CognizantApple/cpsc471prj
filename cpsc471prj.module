@@ -1,7 +1,8 @@
 <?php
-module_load_include('php', 'cpsc471prj', 'includes/User');
-module_load_include('php', 'cpsc471prj', 'includes/Season');
-module_load_include('php', 'cpsc471prj', 'includes/Renter');
+module_load_include('php', 'cpsc471prj', 'includes/instances/User');
+module_load_include('php', 'cpsc471prj', 'includes/instances/Renter');
+module_load_include('php', 'cpsc471prj', 'includes/instances/RentalAccount');
+module_load_include('php', 'cpsc471prj', 'includes/Validator');
 
 
 /**
@@ -172,8 +173,9 @@ function cpsc471_access() {
 function home_form($form, &$form_state) {
 	
 	$user = new User();
-	
-	if(user_is_logged_in()) {
+	$user->setRole('Manager', true);
+	//$user->setRole('Manager', false);
+	if($user->loggedIn()) {
 		if($user->hasRole('Renter')) {
 			drupal_goto('scc/renter');
 		}
@@ -230,13 +232,13 @@ function home_form($form, &$form_state) {
 }
 
 function home_form_validate($form, $form_state){
-	if(!User::isCreditCardValid($form_state['values']['credit_card'])){
+	if(!Validator::isCreditCardValid($form_state['values']['credit_card'])){
 		form_set_error('credit_card', "Invalid Credit Card Format.");
 	}
-	if(!User::isPhoneNumberValid($form_state['values']['phone_number'])){
+	if(!Validator::isPhoneNumberValid($form_state['values']['phone_number'])){
 		form_set_error('phone_number', "Invalid Phone number Format.");
 	}
-	if(!User::isEmailValid($form_state['values']['email'])){
+	if(!Validator::isEmailValid($form_state['values']['email'])){
 		form_set_error('email', "Invalid email format");
 	}
 }
@@ -245,50 +247,41 @@ function home_form_validate($form, $form_state){
 /**
  * Creates a new account in both the drupal user table and the rental_account table
  */
-function home_form_submit($form, $form_state) {
-	
+function home_form_submit($form, $form_state) {	
 	$email = $form_state['values']['email'];
 	$password = $form_state['values']['password'];
 	$name = $form_state['values']['name'];
 	$credit_card = $form_state['values']['credit_card'];//Not saved yet
 	$phone = $form_state['values']['phone_number'];
 	
-	$newUserForDrupal = array(
-		'name' => $email,
-		'pass' => $password,
-		'mail' => $email,
-		'status' => 1,
-		'init' => $email,
-		'is_new' => true,
-	);
 	
-	$DrupalUser = user_save('', $newUserForDrupal);
+	//create the new drupal user
+	$user = new User();
+	$user->setProperty('name', $email);
+	$user->setProperty('mail', $email);
+	$user->setProperty('pass', $password);
+	$user->create();
+	//log the new user in
+	$user->login();
+	$user->setRole('Renter');
 	
-	$NewRenterInfo = array(
-			'account_uid' => $DrupalUser->uid,
-			'name' => $name,
-			'id_adult' => 1,
-	);
+	//create the initial renter
+	$renter = new Renter('new');
+	$renter->setProperty('account_uid', $user->getProperty('uid'));
+	$renter->setProperty('name', $name);
+	$renter->setProperty('is_adult', 1);
+	$renter->create();
+		
+	//create the new account now that we can link the renter and the drupal account
+	$account = new RentalAccount();
+	$account->setProperty('uid', $user->getProperty('uid'));
+	$account->setProperty('credit_card', $credit_card);
+	$account->setProperty('phone', $phone);
+	$account->setProperty('primary_renter_id', $renter->getProperty('id'));
+	$account->create();
 	
-	$NewRenter = new Renter('new');
-	
-	
-	$NewRenter->setCopy($NewRenterInfo);
-	$NewRenter->storeToDB();
-	
-	
-	//$NewRenter->AddNewRenter($NewRenterInfo);
-	
-	$NewUserInfo = array(
-		'uid' => $DrupalUser->uid,
-		'credit_card' => $credit_card,
-		'phone' => $phone,
-		'primary_renter_id' => $NewRenter->getProperty('id'),
-	);
-	
-	$YourGuy = new User();
-	$YourGuy->AddNewUser($NewUserInfo);
-	
+	//set a friendly message
+	drupal_set_message('Account Created, you have been logged into your account.');
 }
 
 
@@ -297,6 +290,12 @@ function manager_home_form($form, &$form_state) {
 	$form['test'] = array (
 			'#markup' => 'manager',
 	);
+	
+	$r = new Renter('standard', array('id' => 7));
+	
+	$r->updateInDB(array('id' => 8));
+	
+	scc_debug($r);
 
 	return $form;
 }
@@ -307,60 +306,6 @@ function manager_view_seasons_form($form, &$form_state) {
 
 function manager_create_seasons_form($form, &$form_state) {
 	
-	$date = '2016-01-01';
-	$format = 'Y-m-d';
-	/*
-	 * 
-		'#title' => 'Password',
-		'#type' => 'textfield',
-		'#required' => true,
-	 */
-	// gather list of information needed for a season
-	$form['name'] = array(
-			'#title' => 'Season name',
-			'#type' => 'textfield',
-			'#required' => true,
-	);
-	$form['start_time'] = array(
-			'#title' => 'Start of season',
-			'#type' => 'date_popup',
-			'#default_value' => $date,
-			'#date_format' => $format,
-			'#required' => true,
-	);
-	$form['end_time'] = array(
-			'#title' => 'End of season',
-			'#type' => 'date_popup',
-			'#default_value' => $date,
-			'#date_format' => $format,
-			'#required' => true,
-	);
-	
-	// call function which adds the form contents to the seasons DB
-	$form['submit'] = array (
-			'#type' => 'submit',
-			'#value' => 'Add Season',
-			'#submit' => array(
-					'create_season_form_submit'
-			),
-	);
-	
-	return $form;
-}
-
-function create_season_form_submit($form, $form_state){
-
-	$seasonVals = array(
-			'name' => $form_state['values']['name'],
-			'start' => strtotime($form_state['values']['start_time']),
-			'end' => strtotime($form_state['values']['end_time']),
-	);
-	scc_debug($seasonVals);
-
-	$s = new Season($seasonVals);
-	$s->setCopy($seasonVals);
-	$s->storeToDB();
-
 }
 
 /**
@@ -473,3 +418,4 @@ function submit($form, &$form_state) {
 function my_ajax($form, $form_state) {
 	return $form['ex'];
 }
+?>
