@@ -351,7 +351,7 @@ abstract class DBTableInstance {
 	/**
 	 * Gets all member variables that end with _p
 	 */
-	private function getPersistentVars() {
+	public function getPersistentVars() {
 		//get the members
 		$vars = $this->toArray();
 		
@@ -371,7 +371,7 @@ abstract class DBTableInstance {
 	/**
 	 * Gets all persistent variables that aren't null
 	 */
-	private function getPersistentNotNull() {
+	public function getPersistentNotNull() {
 		//get the persistent vars
 		$persistent = $this->getPersistentVars();
 		
