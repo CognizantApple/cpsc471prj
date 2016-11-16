@@ -282,7 +282,7 @@ function cpsc471prj_schema() {
 			'description' => 'Superclass for all rentable items',
 			'fields' => array( // List of attributes/columns
 					'id' => array(
-							'type' => 'int',
+							'type' => 'serial',
 							'not null' => true,
 					),
 					'is_active' => array(

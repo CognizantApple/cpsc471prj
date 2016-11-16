@@ -1,6 +1,9 @@
 <?php
-module_load_include('php', 'cpsc471prj', 'includes/User');
-module_load_include('php', 'cpsc471prj', 'includes/Renter');
+module_load_include('php', 'cpsc471prj', 'includes/instances/User');
+module_load_include('php', 'cpsc471prj', 'includes/instances/Renter');
+module_load_include('php', 'cpsc471prj', 'includes/instances/RentalAccount');
+module_load_include('php', 'cpsc471prj', 'includes/instances/Cottage');
+module_load_include('php', 'cpsc471prj', 'includes/Validator');
 
 
 /**
@@ -108,7 +111,7 @@ function cpsc471prj_menu(){
 	);
 	
 	$items['scc/manager/cottages'] = array (
-		'title' => 'View Seasons',
+		'title' => 'View Cottages',
 		'description' => 'Manager main page',
 		'page callback' => 'drupal_get_form',
 		'page arguments' => array (
@@ -119,6 +122,21 @@ function cpsc471prj_menu(){
 		'access arguments' => array (
 				'manager'
 		),
+	);
+	
+	$items['scc/manager/cottages/new'] = array (
+			'title' => 'New Cottage',
+			'description' => 'Manager main page',
+			'page callback' => 'drupal_get_form',
+			'page arguments' => array (
+					'manager_new_cottage_form',
+			),
+			'menu_name' => 'cpsc',
+			'access callback' => 'cpsc471_access',
+			'access arguments' => array (
+					'manager'
+			),
+			'type' => MENU_LOCAL_ACTION
 	);
 	
 	
@@ -171,8 +189,9 @@ function cpsc471_access() {
 function home_form($form, &$form_state) {
 	
 	$user = new User();
-	
-	if(user_is_logged_in()) {
+	$user->setRole('Manager', true);
+	//$user->setRole('Manager', false);
+	if($user->loggedIn()) {
 		if($user->hasRole('Renter')) {
 			drupal_goto('scc/renter');
 		}
@@ -229,13 +248,13 @@ function home_form($form, &$form_state) {
 }
 
 function home_form_validate($form, $form_state){
-	if(!User::isCreditCardValid($form_state['values']['credit_card'])){
+	if(!Validator::isCreditCardValid($form_state['values']['credit_card'])){
 		form_set_error('credit_card', "Invalid Credit Card Format.");
 	}
-	if(!User::isPhoneNumberValid($form_state['values']['phone_number'])){
+	if(!Validator::isPhoneNumberValid($form_state['values']['phone_number'])){
 		form_set_error('phone_number', "Invalid Phone number Format.");
 	}
-	if(!User::isEmailValid($form_state['values']['email'])){
+	if(!Validator::isEmailValid($form_state['values']['email'])){
 		form_set_error('email', "Invalid email format");
 	}
 }
@@ -244,50 +263,41 @@ function home_form_validate($form, $form_state){
 /**
  * Creates a new account in both the drupal user table and the rental_account table
  */
-function home_form_submit($form, $form_state) {
-	
+function home_form_submit($form, $form_state) {	
 	$email = $form_state['values']['email'];
 	$password = $form_state['values']['password'];
 	$name = $form_state['values']['name'];
 	$credit_card = $form_state['values']['credit_card'];//Not saved yet
 	$phone = $form_state['values']['phone_number'];
 	
-	$newUserForDrupal = array(
-		'name' => $email,
-		'pass' => $password,
-		'mail' => $email,
-		'status' => 1,
-		'init' => $email,
-		'is_new' => true,
-	);
 	
-	$DrupalUser = user_save('', $newUserForDrupal);
+	//create the new drupal user
+	$user = new User();
+	$user->setProperty('name', $email);
+	$user->setProperty('mail', $email);
+	$user->setProperty('pass', $password);
+	$user->create();
+	//log the new user in
+	$user->login();
+	$user->setRole('Renter');
 	
-	$NewRenterInfo = array(
-			'account_uid' => $DrupalUser->uid,
-			'name' => $name,
-			'id_adult' => 1,
-	);
+	//create the initial renter
+	$renter = new Renter('new');
+	$renter->setProperty('account_uid', $user->getProperty('uid'));
+	$renter->setProperty('name', $name);
+	$renter->setProperty('is_adult', 1);
+	$renter->create();
+		
+	//create the new account now that we can link the renter and the drupal account
+	$account = new RentalAccount();
+	$account->setProperty('uid', $user->getProperty('uid'));
+	$account->setProperty('credit_card', $credit_card);
+	$account->setProperty('phone', $phone);
+	$account->setProperty('primary_renter_id', $renter->getProperty('id'));
+	$account->create();
 	
-	$NewRenter = new Renter('new');
-	
-	
-	$NewRenter->setCopy($NewRenterInfo);
-	$NewRenter->storeToDB();
-	
-	
-	//$NewRenter->AddNewRenter($NewRenterInfo);
-	
-	$NewUserInfo = array(
-		'uid' => $DrupalUser->uid,
-		'credit_card' => $credit_card,
-		'phone' => $phone,
-		'primary_renter_id' => $NewRenter->getProperty('id'),
-	);
-	
-	$YourGuy = new User();
-	$YourGuy->AddNewUser($NewUserInfo);
-	
+	//set a friendly message
+	drupal_set_message('Account Created, you have been logged into your account.');
 }
 
 
@@ -310,11 +320,157 @@ function manager_create_seasons_form($form, &$form_state) {
 
 /**
  * Form with a table of cottages to view
- * @param unknown $form
- * @param unknown $form_state
  */
 function manager_view_cottages_form($form, &$form_state) {
+	//get all the cottages
+	$cottages = Cottage::instanceLoadMultiple();
 	
+	//create the table header
+	$header = array (
+		'number' => array (
+			'data' => 'Number',
+		),
+		'class' => array (
+			'data' => 'Class'
+		),
+		'max_adults' => array (
+			'data' => 'Max Adults',
+		),
+		'base_adults '=> array (
+			'data' => 'Base Adults',
+		),
+	);
+	
+	//iterate over each cottage and create a table row
+	$rows = array();
+	
+	foreach($cottages as $cottage) {
+		$row = array('data' => array());
+		$row['data']['number'] = $cottage->getProperty('number');
+		$row['data']['class'] = $cottage->getProperty('class_name');
+		$row['data']['max_adults'] = $cottage->getProperty('max_adults');
+		$row['data']['base_adults'] = $cottage->getProperty('base_adults');
+		$rows[] = $row;
+	}
+	
+	$form['cottage_table'] = array (
+		'#theme' => 'table',
+		'#header' => $header,
+		'#rows' => $rows,
+		'#empty' => 'No cottages have been added',
+	);
+	
+	return $form;
+}
+
+/**
+ * Form for creating a new cottage
+ */
+function manager_new_cottage_form($form, &$form_state) {
+	$form['cottage_class'] = array (
+		'#title' => 'Class Name',
+		'#type' => 'textfield',
+		'#required' => true,
+	);
+	
+	$form['cottage_number'] = array (
+		'#title' => 'Cottage Number',
+		'#type' => 'textfield',
+		'#required' => true,
+	);
+	
+	$form['max_adults'] = array (
+		'#title' => 'Maximum Adults',
+		'#type' => 'textfield',
+		'#required' => true,
+	);
+	
+	$form['base_adults'] = array (
+		'#title' => 'Base Number of Adults',
+		'#type' => 'textfield',
+		'#required' => true,
+	);
+	
+	$form['submit'] = array (
+		'#type' => 'submit',
+		'#value' => 'Create Cottage',
+		'#submit' => array (
+			'manager_new_cottage_form_submit'
+		),
+		'#validate' => array (
+			'manager_new_cottage_form_validate'
+		),
+	);
+	
+	return $form;
+}
+
+/**
+ * Checks that all the numbers are positive, and formats the class name
+ */
+function manager_new_cottage_form_validate($form, &$form_state) {
+	//fix capitalization on class name
+	$class_name = $form_state['values']['cottage_class'];
+	$class_name = ucwords(strtolower($class_name));
+	$form_state['values']['cottage_class'] = $class_name;
+	
+	$inputGood = true;
+	
+	if(!Validator::isPositive($form_state['values']['max_adults'])) {
+		form_set_error('max_adults', 'Max adults count must be positive');
+		$inputGood = false;
+	}
+	
+	if(!Validator::isPositive($form_state['values']['base_adults'])) {
+		form_set_error('base_adults', 'Base Adults count must be positive');
+		$inputGood = false;
+	}
+	
+	if(!Validator::isPositive($form_state['values']['cottage_number'])) {
+		form_set_error('cottage_number', 'Cottage Number must be positive');
+		$inputGood = false;
+	}
+	
+	if($inputGood) {
+		//check that the cottage number is unique
+		$cottageNumber = intval($form_state['values']['cottage_number']);
+		
+		$cottage = new Cottage();
+		$cottage->setProperty('number', $cottageNumber);
+		if($cottage->existsInDB()) {
+			form_set_error('cottage_number', 'Cottage number ' . $cottageNumber . ' already used');
+		}
+	}
+	
+}
+
+/**
+ * Creates a new cottage from the form_state, and sets a relevant message
+ */
+function manager_new_cottage_form_submit($form, &$form_state) {
+	$values = $form_state['values'];
+	
+	//create and initializat the cottage
+	$cottage = new Cottage();
+	$cottage->setProperty('max_adults', $values['max_adults']);
+	$cottage->setProperty('base_adults', $values['base_adults']);
+	$cottage->setProperty('number', $values['cottage_number']);
+	$cottage->setProperty('class_name', $values['cottage_class']);
+	
+	//this create a starting point for a database interaction,
+	//on error it can be reverted to the initial state, this should be used on any multitable interaction
+	$t = db_transaction();
+	//attempt to create the cottage
+	try {
+		if ($cottage->create()) {
+			drupal_set_message('Cottage Created Successfully.');
+		} else {
+			drupal_set_message('Cottage already exists, and was not created.', 'error');
+		}
+	} catch (PDOException $e) {
+		drupal_set_message('An error occurred while creating a cottage: ' . $e->getMessage(), 'error');
+		$t->rollback();
+	}
 }
 
 function renter_home_form($form, &$form_state) {
