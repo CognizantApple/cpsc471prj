@@ -303,6 +303,23 @@ function cpsc471prj_schema() {
 							'type' => 'int',
 							'not null' => true,
 					),
+					'two_day' => array(
+							'type' => 'int',
+							'not null' => true,
+					),
+					'three_day' => array(
+							'type' => 'int',
+							'not null' => true,
+					),
+					'week' => array(
+							'type' => 'int',
+							'not null' => true,
+					),
+					'rebook_discount' => array(
+							'type' => 'int',
+							//'not null' => true,
+							'default' => 0,
+					),
 			),
 			'primary key' => array('id')
 	
