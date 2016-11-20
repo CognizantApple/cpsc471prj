@@ -3,6 +3,7 @@ module_load_include('php', 'cpsc471prj', 'includes/instances/User');
 module_load_include('php', 'cpsc471prj', 'includes/instances/Renter');
 module_load_include('php', 'cpsc471prj', 'includes/instances/RentalAccount');
 module_load_include('php', 'cpsc471prj', 'includes/instances/Cottage');
+module_load_include('php', 'cpsc471prj', 'includes/instances/Season');
 module_load_include('php', 'cpsc471prj', 'includes/Validator');
 
 
@@ -316,7 +317,7 @@ function manager_view_seasons_form($form, &$form_state) {
 	
 	// create the table hearder
 	$header = array (
-		'etart_time' => array (
+		'start_time' => array (
 				'data' => 'Start Time'
 		),
 		'end_time' => array (
@@ -332,9 +333,9 @@ function manager_view_seasons_form($form, &$form_state) {
 	
 	foreach($seasons as $season) {
 		$row = array('data' => array());
-		$row['data']['start_time'] = $cottage->getProperty('start_time');
-		$row['data']['end_time'] = $cottage->getProperty('end_time');
-		$row['data']['name'] = $cottage->getProperty('name');
+		$row['data']['start_time'] = $season->getProperty('start_time');
+		$row['data']['end_time'] = $season->getProperty('end_time');
+		$row['data']['name'] = $season->getProperty('name');
 		$rows[] = $row;
 	}
 	
@@ -351,8 +352,8 @@ function create_season_form_submit($form, $form_state){
 
 	$seasonVals = array(
 			'name' => $form_state['values']['name'],
-			'start' => strtotime($form_state['values']['start_time']),
-			'end' => strtotime($form_state['values']['end_time']),
+			'start_time' => strtotime($form_state['values']['start_time']),
+			'end_time' => strtotime($form_state['values']['end_time']),
 	);
 	scc_debug($seasonVals);
 
