@@ -175,11 +175,20 @@ class Cottage extends DBTableInstance{
 	}
 	
 	/**
-	 * Instead of a plain select, we can execute a join on cottage and rental
-	 * {@inheritDoc}
-	 * @see DBTableInstance::selectQuery()
+	 * Creates a join-select queury between cottage and rental,
+	 * 
+	 * this is a pseudo-override of selectQuery
+	 * 
+	 * @param array $toSelectCottage
+	 * 		An array of columns to select on the cottage table (indexed by column name)
+	 * @param array $toSelectRentalItem
+	 * 		An array of columns to select on the rental_item table
+	 * @param array $arguments
+	 * 		An output array of arguments to db_query
+	 * @return string
+	 * 		The SQL query to execute
 	 */
-	protected function joinOnRentalItem($toSelectCottage, $toSelectRentalItem, &$arguments) {
+	protected function joinOnRentalItem($toSelectCottage, $toSelectRentalItem, &$arguments = array()) {
 		$sql = 'SELECT * FROM ' . $this->tableName . ' AS C, ' . DBConf::$rentableItem. ' AS R WHERE C.id = R.id ';
 		
 		$arguments = array();
