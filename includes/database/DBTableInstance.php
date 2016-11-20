@@ -29,10 +29,10 @@ abstract class DBTableInstance {
 	 * 		(if there are multiple matching rows, no promises are made about which one is loaded)
 	 */
 	public function __construct($type = 'new', $data = array()) {
+		$this->setCopy($data);
 		if($type == 'new') {
 			return;
-		} else if($type == 'standard') {
-			$this->setCopy($data);
+		} else if($type == 'standard') {	
 			$this->getFromDB();
 		}
 	}
