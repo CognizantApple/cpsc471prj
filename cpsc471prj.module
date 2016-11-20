@@ -352,6 +352,8 @@ function manager_new_price_guide_form($form, &$form_state) {
 function manager_view_seasons_form($form, &$form_state) {
 	//get all seasons
 	$seasons = Season::instanceLoadMultiple();
+
+	$format = 'F j, Y';
 	
 	// create the table hearder
 	$header = array (
@@ -371,8 +373,8 @@ function manager_view_seasons_form($form, &$form_state) {
 	
 	foreach($seasons as $season) {
 		$row = array('data' => array());
-		$row['data']['start_time'] = $season->getProperty('start_time');
-		$row['data']['end_time'] = $season->getProperty('end_time');
+		$row['data']['start_time'] = date($format , $season->getProperty('start_time'));
+		$row['data']['end_time'] = date($format ,$season->getProperty('end_time'));
 		$row['data']['name'] = $season->getProperty('name');
 		$rows[] = $row;
 	}
@@ -393,11 +395,11 @@ function create_season_form_submit($form, $form_state){
 			'start_time' => strtotime($form_state['values']['start_time']),
 			'end_time' => strtotime($form_state['values']['end_time']),
 	);
-	scc_debug($seasonVals);
+	//scc_debug($seasonVals);
 
-	$s = new Season();
-	$s->setCopy($seasonVals);
-	$s->storeToDB();
+	$s = new Season('new', $seasonVals);
+	//$s->setCopy($seasonVals);
+	$s->create();
 
 }
 
