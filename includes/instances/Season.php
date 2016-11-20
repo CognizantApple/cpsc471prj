@@ -14,19 +14,19 @@ class Season extends DBTableInstance {
 	 * serves as primary key.
 	 * @var int
 	 */
-	protected $start_time;
+	protected $start_time_p;
 	
 	/**
 	 * The end time of the season.
 	 * @var int
 	 */
-	protected $end_time;
+	protected $end_time_p;
 	
 	/**
 	 * The name of the season
 	 * @var varchar(60)
 	 */
-	protected $name;
+	protected $name_p;
 	
 	/**
 	 * Construct a renter by passing it some values
