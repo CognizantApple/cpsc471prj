@@ -70,6 +70,35 @@ function cpsc471prj_menu(){
 		),
 	);
 	
+	$items['scc/renter/viewrenters'] = array (
+		'title' => 'Add Renters',
+		'description' => 'Add Renters',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array (
+			'renter_view_renters_form',
+		),
+		'menu_name' => 'cpsc',
+		'access callback' => 'cpsc471_access',
+		'access arguments' => array (
+			'renter'
+		),
+	);
+	
+	$items['scc/renter/viewrenters/add'] = array (
+		'title' => 'Add Renters',
+		'description' => 'Add Renters',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array (
+			'renter_add_renters_form',
+		),
+		'menu_name' => 'cpsc',
+		'access callback' => 'cpsc471_access',
+		'access arguments' => array (
+			'renter'
+		),
+		'type' => MENU_LOCAL_ACTION
+	);
+	
 	$items['scc/manager'] = array (
 		'title' => 'Manager',
 		'description' => 'Manager main page',
@@ -358,16 +387,6 @@ function manager_home_form($form, &$form_state) {
 
 
 function manager_view_price_guides_form($form, &$form_state) {
-	
-	$guide = new CottagePriceGuide('new', array(
-		'name' => 'A',
-		'two_day' => 47,
-		'three_day' => 45,
-		'week' => 450,
-		'rebook_discount' => 600,
-	));
-	
-	$guide->create();
 	//get all price guides
 	$guides = CottagePriceGuide::instanceLoadMultiple();
 	
@@ -399,7 +418,7 @@ function manager_view_price_guides_form($form, &$form_state) {
 		$row['data']['two_day'] = '$' . $guide->getProperty('two_day');
 		$row['data']['three_day'] = '$' . $guide->getProperty('three_day');
 		$row['data']['week'] = '$' . $guide->getProperty('week');
-		$row['data']['rebook_discount'] = '$' . $guide->getProperty('rebook_discount');
+		$row['data']['rebook_discount'] = $guide->getProperty('rebook_discount') . '%';
 		$rows[] = $row;
 	}
 	
@@ -413,8 +432,72 @@ function manager_view_price_guides_form($form, &$form_state) {
 	return $form;
 }
 
+/**
+ * Displays a form for entering a new price guide
+ */
 function manager_new_price_guide_form($form, &$form_state) {
+	$form['name'] = array (
+		'#type' => 'textfield',
+		'#title' => 'Price Guide Name',
+		'#required' => true,
+	);
+	
+	$form['two_day'] = array (
+		'#type' => 'textfield',
+		'#title' => 'Two Day Rate',
+		'#required' => true,
+	);
+	
+	$form['three_day'] = array (
+		'#type' => 'textfield',
+		'#title' => 'Three Day Rate',
+		'#required' => true,
+	);
+	
+	$form['week'] = array (
+		'#type' => 'textfield',
+		'#title' => 'Week Rate',
+		'#required' => true,
+	);
+	
+	$form['rebook_discount'] = array (
+		'#type' => 'textfield',
+		'#title' => 'Rebook Discount (%)',
+		'#required' => true,
+	);
+	
+	$form['submit'] = array (
+		'#type' => 'submit',
+		'#value' => 'Create Price Guide',
+		'#validate' => array('manager_new_price_guide_form_validate'),
+		'#submit' => array('manager_new_price_guide_form_submit'),
+	);
+	
+	return $form;
+}
 
+/**
+ * Checks that the requested price guide name is unique
+ */
+function manager_new_price_guide_form_validate($form, &$form_state) {
+	
+	//check that the price guide name is unique
+	$guide = new CottagePriceGuide('new', array(
+		'name' => $form_state['values']['name'],
+	));
+	
+	if($guide->existsInDB()) {
+		form_set_error('name', 'A price guide with that name already exists');
+	}
+}
+
+/**
+ * Creates a new price guide
+ */
+function manager_new_price_guide_form_submit($form, &$form_state) {
+	$guide = new CottagePriceGuide('new', $form_state['values']);
+	$guide->create();
+	drupal_set_message('Price Guide Created');
 }
 function manager_select_cottage_price_season($form, &$form_state){
 	/*
@@ -752,7 +835,98 @@ function renter_home_form($form, &$form_state) {
 }
 
 
+function renter_add_renters_form($form, &$form_state) {
+	drupal_set_title('New Renter');
+	
+	$date = '2016-01-01';
+	$format = 'Y-m-d';
+	
+	$form['name'] = array (
+		'#title' => 'Name',
+		'#type' => 'textfield',
+		'#required' => true,
+	);
+	
+	$form['is_adult'] = array (
+		'#title' => 'Is Adult',
+		'#type' => 'checkbox',
+	);
+	
+	$form['age'] = array (
+		'#title' => 'Age',
+		'#description' => 'If not an adult, please provide a birthdate',
+		'#type' => 'date_popup',
+		'#date_year_range' => '-18:+0',
+		'#default_value' => $date,
+		'#date_format' => $format,
+	);
+	
+	$form['submit'] = array (
+		'#type' => 'submit',
+		'#value' => 'Create Renter',
+		'#submit' => array('renter_add_renters_form_submit'),
+	);
+		
+	return $form;
+}
 
+function renter_add_renters_form_submit($form, &$form_state) {
+	$birth_time = strtotime($form_state['values']['age']);
+	
+	$user = new User();
+	
+	$renter = new Renter('new', array(
+		'name' => $form_state['values']['name'],
+		'is_adult' => $form_state['values']['is_adult'],
+		'birth_time' => $form_state['values']['is_adult'] ? null : $birth_time,
+		'account_uid' => $user->getProperty('uid'),
+	));
+	
+	$renter->create();
+	
+	drupal_set_message('Renter Created');
+}
+
+function renter_view_renters_form($form, &$form_state) {
+	$user = new User();
+	$format = 'F j, Y';
+		//get all the renters
+	$renters = Renter::instanceLoadMultiple(array('account_uid' => $user->getProperty('uid')));
+	
+	//create the table header
+	$header = array (
+		'name' => array (
+			'data' => 'Name',
+		),
+		'is_adult' => array (
+			'data' => 'Is Adult'
+		),
+		'birth_date' => array (
+			'data' => 'Birth Date',
+		),
+	);
+	
+	//iterate over each cottage and create a table row
+	$rows = array();
+	
+	foreach($renters as $renter) {
+		$row = array('data' => array());
+		$row['data']['name'] = $renter->getProperty('name');
+		$row['data']['is_adult'] = $renter->getProperty('is_adult') ? 'Yes' : 'No';
+		$row['data']['birth_date'] = $renter->getProperty('birth_time') == null ? 'Not specified' : date($format, $renter->getProperty('birth_time'));
+		$rows[] = $row;
+	}
+	
+	$form['renter_table'] = array (
+		'#theme' => 'table',
+		'#header' => $header,
+		'#rows' => $rows,
+	);
+	
+	return $form;
+	
+	
+}
 
 
 
