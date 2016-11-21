@@ -299,27 +299,32 @@ function cpsc471prj_schema() {
 	$schema['cottage_price_guide'] = array(
 			'description' => 'Master table of ids for accessing nightly and extra adult costs for cottages.',
 			'fields' => array( // List of attributes/columns
-					'id' => array(
-							'type' => 'int',
-							'not null' => true,
-					),
-					'two_day' => array(
-							'type' => 'int',
-							'not null' => true,
-					),
-					'three_day' => array(
-							'type' => 'int',
-							'not null' => true,
-					),
-					'week' => array(
-							'type' => 'int',
-							'not null' => true,
-					),
-					'rebook_discount' => array(
-							'type' => 'int',
-							//'not null' => true,
-							'default' => 0,
-					),
+				'id' => array(
+						'type' => 'serial',
+						'not null' => true,
+				),
+				'name' => array (
+					'type' => 'varchar',
+					'length' => 256,
+					'not null' => true,
+				),
+				'two_day' => array(
+						'type' => 'int',
+						'not null' => true,
+				),
+				'three_day' => array(
+						'type' => 'int',
+						'not null' => true,
+				),
+				'week' => array(
+						'type' => 'int',
+						'not null' => true,
+				),
+				'rebook_discount' => array(
+						'type' => 'int',
+						//'not null' => true,
+						'default' => 0,
+				),
 			),
 			'primary key' => array('id')
 	
