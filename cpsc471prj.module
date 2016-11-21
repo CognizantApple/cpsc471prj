@@ -180,6 +180,21 @@ function cpsc471prj_menu(){
 		'access callback' => true,
 		
 	);
+	$items['scc/manager/joinCottageSeasonGuide'] = array (
+		'title' => 'Select Seasonal Price Guide for Cottage',
+		'description' => 'Cottage price guide',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array (
+				'manager_select_cottage_price_season',
+		),
+		'menu_name' => 'cpsc',
+		'access callback' => 'cpsc471_access',
+		'access arguments' => array (
+				'manager'
+		),
+		'type' => MENU_LOCAL_ACTION
+	);
+	
 	return $items;
 }
 
@@ -348,7 +363,70 @@ function manager_view_price_guides_form($form, &$form_state) {
 function manager_new_price_guide_form($form, &$form_state) {
 
 }
-
+function manager_select_cottage_price_season($form, &$form_state){
+	/*
+	 * Select a cottage, price guide, and season, and then make an
+	 * entry in the priced_for table containing the id of the cottage,
+	 * start date of the season, and id of the price guide.
+	 */
+	db_query("SELECT * FROM Users");
+	
+	
+	if(isset($form_state['storage']['save_value'])) {
+		$number = $form_state['storage']['save_value'];
+		$number *= 2;
+	}
+	
+	
+	$form['ex'] = array (
+			'#prefix' => '<div id="my_div">',
+			'#markup' => $number,
+			'#suffix' => '</div>',
+	);
+	
+	$form_state['storage']['save_value'] = intval($number);
+	
+	$form['button'] = array (
+			'#type' => 'fieldset',
+			'#title' => 'fred',
+	
+	
+				
+	
+				
+			'button2' => array (
+					'#type' => 'button',
+					'#value' => 'fish',
+					'#ajax' => array (
+							'callback' => 'my_ajax',
+							'wrapper' => 'my_div',
+					),
+			),
+	);
+	
+	$form['textfield6'] = array (
+			'#type' => 'textfield',
+	);
+	
+	$form['selectfield'] = array (
+			'#type' => 'select',
+			'#options' => array (
+					'index1' => 'Option One',
+					'index2' => 'Option Two',
+			),
+	);
+	
+	$form['submit'] = array (
+			'#type' => 'submit',
+			'#value' => 'Submit',
+				
+				
+			'#validate' => array('validate'),
+			'#submit' => array('submit'),
+	);
+	
+	return $form;
+}
 function manager_view_seasons_form($form, &$form_state) {
 	//get all seasons
 	$seasons = Season::instanceLoadMultiple();
