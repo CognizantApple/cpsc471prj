@@ -6,7 +6,7 @@ module_load_include('php', 'cpsc471prj', 'includes/instances/RentalItem');
 
 
 
-class Boat_Item extends DBTableInstance{
+class BoatItem extends DBTableInstance{
 	
 	/**
 	 * The rental Items ID
@@ -157,7 +157,7 @@ class Boat_Item extends DBTableInstance{
 	
 		//create an instance from each result
 		while($row = $result->fetchAssoc()) {
-			$instance = new Boat_Item('new');
+			$instance = new BoatItem('new');
 			$instance->setCopy($row);
 			$instance->rentalItem->setCopy($row);
 			$instances[] = $instance;
