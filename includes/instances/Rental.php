@@ -9,40 +9,37 @@ module_load_include("php", "cpsc471prj", "includes/database/DBTableInstance");
  */
 class Rental extends DBTableInstance {
 
-	/**
-	 * The start time of the season.
-	 * serves as primary key.
-	 * @var int
-	 */
+	
 	protected $start_time_p;
 
-	/**
-	 * The end time of the season.
-	 * @var int
-	 */
-	protected $end_time_p;
+	
+	protected $renters_uid_p;
+	
+	
+	protected $duration_p;
+	
+	protected $actual_arrival_time_p;
+	
+	protected $estimated_arrival_time_p;
+	
+	protected $returning_p;
+	
+	protected $rental_type_p;
 
-	/**
-	 * The name of the season
-	 * @var varchar(60)
-	 */
-	protected $name_p;
 
 	/**
 	 * Construct a renter by passing it some values
 	 */
-	public function Season($type = 'new', $data = array()){
-		$this->tableName = DBConf::$season;
+	public function Rental($type = 'new', $data = array()){
+		$this->tableName = DBConf::$rental;
 		parent::__construct($type, $data);
 	}
-
-	/**
-	 * adds the stuff in $values into da table
-	 * @param unknown $values
-
-	 public function addSeason($values){
-		$myQuery = "INSERT INTO ". DBConf::$season. " VALUES ".
-		"("
-		}
-		*/
+	
+	public function loadRentalAccount() {
+		
+	}
+	
+	public function loadRentedItems() {
+		
+	}
 }

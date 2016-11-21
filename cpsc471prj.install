@@ -132,9 +132,6 @@ function cpsc471prj_schema() {
 				'type' => 'int',
 				'not null' => true,
 			),
-			'price_override' => array(
-				'type' => 'int',
-			),
 			'actual_arrival_time' => array(
 				'type' => 'int',
 			),
