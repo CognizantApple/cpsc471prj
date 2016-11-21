@@ -5,6 +5,7 @@ module_load_include('php', 'cpsc471prj', 'includes/instances/RentalAccount');
 module_load_include('php', 'cpsc471prj', 'includes/instances/Cottage');
 module_load_include('php', 'cpsc471prj', 'includes/instances/Season');
 module_load_include('php', 'cpsc471prj', 'includes/instances/CottagePriceGuide');
+module_load_include('php', 'cpsc471prj', 'includes/instances/PricedFor');
 module_load_include('php', 'cpsc471prj', 'includes/Validator');
 
 
@@ -222,7 +223,6 @@ function cpsc471prj_menu(){
 		'access arguments' => array (
 				'manager'
 		),
-		'type' => MENU_LOCAL_ACTION
 	);
 	
 	return $items;
@@ -505,64 +505,72 @@ function manager_select_cottage_price_season($form, &$form_state){
 	 * entry in the priced_for table containing the id of the cottage,
 	 * start date of the season, and id of the price guide.
 	 */
-	db_query("SELECT * FROM Users");
+	$guides = CottagePriceGuide::instanceLoadMultiple();
+	$seasons = Season::instanceLoadMultiple();
+	$cottages = Cottage::instanceLoadMultiple();
 	
 	
-	if(isset($form_state['storage']['save_value'])) {
-		$number = $form_state['storage']['save_value'];
-		$number *= 2;
+	// don't know what this does lol
+	//$form_state['storage']['save_value'] = intval($number);
+	
+	$guideOptions = array();
+	foreach($guides as $guide) {
+		$guideOptions[$guide->getProperty("id")] = $guide->getProperty('name');
 	}
 	
+	$seasonOptions = array();
+	foreach($seasons as $season) {
+		$seasonOptions[$season->getProperty("start_time")] = $season->getProperty('name');
+	}
 	
-	$form['ex'] = array (
-			'#prefix' => '<div id="my_div">',
-			'#markup' => $number,
-			'#suffix' => '</div>',
-	);
+	$cottageOptions = array();
+	foreach($cottages as $cottage) {
+		$cottageOptions[$cottage->getProperty("id")] = $cottage->getProperty('number');
+	}
 	
-	$form_state['storage']['save_value'] = intval($number);
-	
-	$form['button'] = array (
-			'#type' => 'fieldset',
-			'#title' => 'fred',
-	
-	
-				
-	
-				
-			'button2' => array (
-					'#type' => 'button',
-					'#value' => 'fish',
-					'#ajax' => array (
-							'callback' => 'my_ajax',
-							'wrapper' => 'my_div',
-					),
-			),
-	);
-	
-	$form['textfield6'] = array (
-			'#type' => 'textfield',
-	);
-	
-	$form['selectfield'] = array (
+	$form['guideselectfield'] = array (
 			'#type' => 'select',
-			'#options' => array (
-					'index1' => 'Option One',
-					'index2' => 'Option Two',
-			),
+			'#title' => 'Guide name',
+			'#options' => $guideOptions,
+	);
+	
+	$form['seasonselectfield'] = array (
+			'#type' => 'select',
+			'#title' => 'Season name',
+			'#options' => $seasonOptions,
+	);
+	
+	$form['cottageselectfield'] = array (
+			'#type' => 'select',
+			'#title' => 'Cottage number',
+			'#options' => $cottageOptions,
 	);
 	
 	$form['submit'] = array (
 			'#type' => 'submit',
-			'#value' => 'Submit',
-				
-				
-			'#validate' => array('validate'),
-			'#submit' => array('submit'),
+			'#value' => 'Link Cottage To Price Guide',
+			'#submit' => array(
+					'select_cottage_price_season_submit'
+			),
 	);
 	
 	return $form;
 }
+
+function select_cottage_price_season_submit($form, $form_state){
+	//scc_debug($form_state['values']);
+	$pricedForVals = array(
+			'cottage_id' => $form_state['values']['cottageselectfield'],
+			'season_start_time' => $form_state['values']['seasonselectfield'],
+			'cost_guide_id' => $form_state['values']['guideselectfield'],
+	);
+	
+	$pf = new PricedFor('new', $pricedForVals);
+	//$s->setCopy($seasonVals);
+	$pf->create();
+	drupal_set_message("Cottage, season, price guide joined.");
+}
+
 function manager_view_seasons_form($form, &$form_state) {
 	//get all seasons
 	$seasons = Season::instanceLoadMultiple();
@@ -614,6 +622,7 @@ function create_season_form_submit($form, $form_state){
 	$s = new Season('new', $seasonVals);
 	//$s->setCopy($seasonVals);
 	$s->create();
+	drupal_set_message("Season added.");
 
 }
 

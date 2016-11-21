@@ -29,7 +29,7 @@ class Season extends DBTableInstance {
 	protected $name_p;
 	
 	/**
-	 * Construct a renter by passing it some values
+	 * Construct a season by passing it some values
 	 */
 	public function Season($type = 'new', $data = array()){
 		$this->tableName = DBConf::$season;
