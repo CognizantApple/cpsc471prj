@@ -1,10 +1,7 @@
 <?php
 module_load_include('php', 'cpsc471prj', 'includes/instances/RentalItem');
-
-
-
-
-
+module_load_include("php", "cpsc471prj", "includes/database/DBConf");
+module_load_include("php", "cpsc471prj", "includes/database/DBTableInstance");
 
 class BoatItem extends DBTableInstance{
 	
@@ -18,19 +15,19 @@ class BoatItem extends DBTableInstance{
 	 * The type of boat rental item (Boat, life jacket, etc.)
 	 * @var string
 	 */
-	protected $type;
+	protected $type_p;
 	
 	/**
 	 * The name of the item
 	 * @var string
 	 */
-	protected $name;
+	protected $name_p;
 	
 	/**
 	 * How many people may use the item at one time
 	 * @var int
 	 */
-	protected $capacity;
+	protected $capacity_p;
 	
 	/**
 	 * This boat items entry in the Rental Item table
