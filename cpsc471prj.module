@@ -482,6 +482,7 @@ function manager_new_price_guide_form($form, &$form_state) {
 	);
 	
 	$form['submit'] = array (
+			
 		'#type' => 'submit',
 		'#value' => 'Create Price Guide',
 		'#validate' => array('manager_new_price_guide_form_validate'),
@@ -641,6 +642,23 @@ function manager_view_seasons_form($form, &$form_state) {
 	
 	return $form;
 }
+
+/**
+ * Checks that the requested season name is unique
+ */
+function create_season_form_validate($form, &$form_state) {
+	
+	//check that the season name is unique
+	$season = new Season('new', array(
+			'name' => $form_state['values']['name'],
+	));
+
+	if($season->existsInDB()) {
+		form_set_error('name', 'A season with that name already exists');
+	}
+	
+}
+
 function create_season_form_submit($form, $form_state){
 
 	$seasonVals = array(
@@ -694,6 +712,9 @@ function manager_create_seasons_form($form, &$form_state) {
 	$form['submit'] = array (
 			'#type' => 'submit',
 			'#value' => 'Add Season',
+			'#validate' => array(
+					'create_season_form_validate'
+			),
 			'#submit' => array(
 					'create_season_form_submit'
 			),
@@ -1128,11 +1149,6 @@ function myform($form, &$form_state, $number) {
 	$form['button'] = array (
 		'#type' => 'fieldset',
 		'#title' => 'fred',
-		
-		
-			
-		
-			
 		'button2' => array (
 			'#type' => 'button',
 			'#value' => 'fish',
