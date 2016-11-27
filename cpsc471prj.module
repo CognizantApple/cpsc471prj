@@ -3,6 +3,8 @@ module_load_include('php', 'cpsc471prj', 'includes/instances/User');
 module_load_include('php', 'cpsc471prj', 'includes/instances/Renter');
 module_load_include('php', 'cpsc471prj', 'includes/instances/RentalAccount');
 module_load_include('php', 'cpsc471prj', 'includes/instances/Cottage');
+module_load_include('php', 'cpsc471prj', 'includes/instances/BoatItem');
+module_load_include('php', 'cpsc471prj', 'includes/instances/BoatItemRate');
 module_load_include('php', 'cpsc471prj', 'includes/instances/Season');
 module_load_include('php', 'cpsc471prj', 'includes/instances/CottagePriceGuide');
 module_load_include('php', 'cpsc471prj', 'includes/instances/PricedFor');
@@ -169,6 +171,49 @@ function cpsc471prj_menu(){
 				'manager'
 		),
 		'type' => MENU_LOCAL_ACTION
+	);
+	
+	$items['scc/manager/boats'] = array (
+			'title' => 'View Boats & Accessories',
+			'description' => 'Manager main page',
+			'page callback' => 'drupal_get_form',
+			'page arguments' => array (
+					'manager_view_boats_form',
+			),
+			'menu_name' => 'cpsc',
+			'access callback' => 'cpsc471_access',
+			'access arguments' => array (
+					'manager'
+			),
+	);
+	
+	$items['scc/manager/boats/new'] = array (
+			'title' => 'New Boat or Accessory',
+			'description' => 'Manager main page',
+			'page callback' => 'drupal_get_form',
+			'page arguments' => array (
+					'manager_new_boat_form',
+			),
+			'menu_name' => 'cpsc',
+			'access callback' => 'cpsc471_access',
+			'access arguments' => array (
+					'manager'
+			),
+			'type' => MENU_LOCAL_ACTION
+	);
+
+	$items['scc/manager/createboatprice'] = array (
+			'title' => 'Set Boat Item Rental Rate',
+			'description' => 'Boat item rental rate',
+			'page callback' => 'drupal_get_form',
+			'page arguments' => array (
+					'manager_create_boat_price',
+			),
+			'menu_name' => 'cpsc',
+			'access callback' => 'cpsc471_access',
+			'access arguments' => array (
+					'manager'
+			),
 	);
 	
 	$items['scc/manager/cottagepriceguides'] = array (
@@ -516,6 +561,7 @@ function manager_new_price_guide_form_submit($form, &$form_state) {
 	$guide->create();
 	drupal_set_message('Price Guide Created');
 }
+
 function manager_select_cottage_price_season($form, &$form_state){
 	/*
 	 * Select a cottage, price guide, and season, and then make an
@@ -705,6 +751,260 @@ function manager_create_seasons_form($form, &$form_state) {
 
 	return $form;
 }
+
+
+/**
+ * Form with a table of boats and boat items to view
+ */
+function manager_view_boats_form($form, &$form_state) {
+	// get ALLLL the boat items
+	$boats = BoatItem::instanceLoadMultiple();
+	
+	// create that table
+	$header = array (
+			'type' => array (
+					'data' => 'Type',
+			),
+			'name' => array (
+					'data' => 'Name',
+			),
+			'capacity' => array (
+					'data' => 'Capacity (for watercraft)',
+			),
+	);
+	
+	$rows = array();
+	
+	foreach($boats as $item) {
+		$row = array('data' => array() );
+		$row['data']['type'] = $item ->getProperty('type');
+		$row['data']['name'] = $item ->getProperty('name');
+		$row['data']['capacity'] = $item ->getProperty('capacity');
+		$rows[] = $row;
+	}
+	
+	$form['boat_table'] = array (
+			'#theme' => 'table',
+			'#header' => $header,
+			'#rows' => $rows,
+			'#empty' => 'No boats or accessories have been added',
+	);
+	
+	return $form;
+}
+/**
+ * Form for creating new boat or boat-item
+ */
+function manager_new_boat_form($form, &$form_state){
+	drupal_set_title('New Boat or Accessory');
+	
+	$form['typeselectfield'] = array (
+			'#title' => 'Boat/Accessory Type',
+			'#type' => 'select',
+			'#required' => true,
+			'#options' => array (
+				'Boat' => 'Boat', 'Tube' => 'Tube', 'Kayak' => 'Kayak', 'Canoe' => 'Canoe',
+				'Skis' => 'Skis', 'Paddleboard' => 'Paddleboard', 'Life Jacket' => 'Life Jacket', 'Bumper' => 'Bumper',
+				'Rope' => 'Rope', 'Other' => 'Other',),
+	);
+	
+	$form['name'] = array (
+			'#title' => 'Name of Boat/Accessory',
+			'#type' => 'textfield',
+			'#required' => true,
+	);
+	
+	$form['capacity'] = array (
+			'#title' => 'Capacity (for a boat)',
+			'#type' => 'textfield',
+	);
+	$form['submit'] = array (
+			'#type' => 'submit',
+			'#value' => 'Create Boat/Accessory',
+			'#validate' => array (
+					'manager_new_boat_form_validate'
+			),
+			'#submit' => array (
+					'manager_new_boat_form_submit'
+			),
+	);
+	
+	return $form;
+}
+
+/**
+ * Performs necessary checks when making new boat
+ */
+function manager_new_boat_form_validate($form, &$form_state) {
+	//fix capitalization on name
+	$boat_name = $form_state['values']['name'];
+	$boat_name = ucwords(strtolower($boat_name));
+	$form_state['values']['name'] = $boat_name;
+	
+	//scc_debug($form_state['values']);
+	
+	if($form_state['values']['typeselectfield'] == 'Boat'){
+		if(!Validator::isPositive($form_state['values']['capacity']) 
+				|| !($form_state['values']['capacity']) ) {
+			form_set_error('capacity', 'capacity must be positive.');
+		}
+	}
+	else{
+		$form_state['values']['capacity'] = '0';
+	}
+	
+	/*
+	if(!Validator::isPositive($form_state['values']['duration'])) {
+		form_set_error('duration', 'Duration of Rental must be positive');
+	}
+	
+	if(!Validator::isPositive($form_state['values']['price'])) {
+		form_set_error('price', 'Price must be positive');
+	}
+	*/
+}
+
+/**
+ * Creates a new boat from the form_state,
+ *  and sets a relevant message
+ */
+function manager_new_boat_form_submit($form, &$form_state) {
+	
+	//scc_debug($form_state['values']);
+	
+	$values = $form_state['values'];
+	
+	//create and initializat the cottage
+	$boat = new BoatItem();
+	$boat->setProperty('type', $values['typeselectfield']);
+	$boat->setProperty('name', $values['name']);
+	$boat->setProperty('capacity', $values['capacity']);
+	
+	//this create a starting point for a database interaction,
+	//on error it can be reverted to the initial state, this should be used on any multitable interaction
+	$t = db_transaction();
+	//attempt to create the boat item
+	try {
+		if ($boat->create()) {
+			drupal_set_message('Boat Item Created Successfully.');
+		} else {
+			drupal_set_message('Boat Item already exists, and was not created.', 'error');
+		}
+	} catch (PDOException $e) {
+		drupal_set_message('An error occurred while creating a boat item: ' . $e->getMessage(), 'error');
+		$t->rollback();
+	}
+}
+
+function manager_create_boat_price($form, &$form_state){
+	/*
+	 * Select a Boat Item, and make a boat rental item rate for it.
+	 */
+	//$rates = BoatItemRate::instanceLoadMultiple();
+	$boats = BoatItem::instanceLoadMultiple();
+	//$cottages = Cottage::instanceLoadMultiple();
+
+
+	// don't know what this does lol
+	//$form_state['storage']['save_value'] = intval($number);
+
+	$boatOptions = array();
+	foreach($boats as $boat) {
+		$boatOptions[$boat->getProperty("id")] = ($boat->getProperty('type') . ' - ' . $boat->getProperty('name'));
+	}
+
+	$form['boatselectfield'] = array (
+			'#type' => 'select',
+			'#title' => 'Select Boat/Accessory name',
+			'#options' => $boatOptions,
+	);
+	
+	$header = array (
+			'message' => array (
+					'message' => 'Information for renting this item:',
+			),
+	);
+	
+	$form['duration'] = array (
+			'#title' => 'Duration of Rental - In Hours',
+			'#type' => 'textfield',
+			'#required' => true,
+	);
+	$form['price'] = array (
+			'#title' => 'Cost to Rent for Above Duration',
+			'#type' => 'textfield',
+			'#required' => true,
+	);
+	
+	$form['submit'] = array (
+			'#type' => 'submit',
+			'#value' => 'Set Rental Rate',
+			'#validate' => array (
+					'create_boat_price_validate'
+			),
+			'#submit' => array(
+					'create_boat_price_submit'
+			),
+	);
+
+	return $form;
+}
+
+
+/**
+ * Performs necessary checks when making new boat rental item rate
+ */
+function create_boat_price_validate($form, &$form_state) {
+
+	//scc_debug($form_state['values']);
+
+	
+	if(!Validator::isPositive($form_state['values']['duration'])) {
+		form_set_error('duration', 'Duration of Rental must be positive');
+	}
+
+	if(!Validator::isPositive($form_state['values']['price'])) {
+		form_set_error('price', 'Price must be positive');
+	}
+	
+}
+
+/**
+ * Creates a new boat rental item rate from the form_state,
+ *  and sets a relevant message
+ */
+function create_boat_price_submit($form, &$form_state) {
+
+	//scc_debug($form_state['values']);
+
+	$values = $form_state['values'];
+
+	$format = 
+	//create and initializat the cottage
+	$boatRate = new BoatItemRate();
+	$boatRate->setProperty('start_time', time());
+	$boatRate->setProperty('duration', $values['duration']);
+	$boatRate->setProperty('item_id', $values['boatselectfield']);
+	$boatRate->setProperty('price', $values['price']);
+
+	//this create a starting point for a database interaction,
+	//on error it can be reverted to the initial state, this should be used on any multitable interaction
+	$t = db_transaction();
+	//attempt to create the boat item
+	try {
+		if ($boatRate->create()) {
+			drupal_set_message('Boat Rental Item Rate Created Successfully.');
+		} else {
+			drupal_set_message('Boat Rental Item Rate already exists, and was not created.', 'error');
+		}
+	} catch (PDOException $e) {
+		drupal_set_message('An error occurred while creating a boat rental item rate: ' . $e->getMessage(), 'error');
+		$t->rollback();
+	}
+}
+
+
+
 
 /**
  * Form with a table of cottages to view
@@ -960,6 +1260,7 @@ function renter_view_renters_form($form, &$form_state) {
 		'#theme' => 'table',
 		'#header' => $header,
 		'#rows' => $rows,
+		'#empty' => 'No renters have been added',
 	);
 	
 	return $form;
