@@ -8,6 +8,7 @@ module_load_include('php', 'cpsc471prj', 'includes/instances/BoatItemRate');
 module_load_include('php', 'cpsc471prj', 'includes/instances/Season');
 module_load_include('php', 'cpsc471prj', 'includes/instances/CottagePriceGuide');
 module_load_include('php', 'cpsc471prj', 'includes/instances/PricedFor');
+module_load_include('php', 'cpsc471prj', 'includes/instances/BoatItem');
 module_load_include('php', 'cpsc471prj', 'includes/Validator');
 
 
@@ -99,6 +100,20 @@ function cpsc471prj_menu(){
 			'renter'
 		),
 		'type' => MENU_LOCAL_ACTION
+	);
+	
+	$items['scc/renter/makerental'] = array (
+		'title' => 'Place Rental',
+		'description' => 'Add Renters',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array (
+			'renter_create_rental_form',
+		),
+		'menu_name' => 'cpsc',
+		'access callback' => 'cpsc471_access',
+		'access arguments' => array (
+			'renter'
+		),
 	);
 	
 	$items['scc/manager'] = array (
@@ -348,16 +363,16 @@ function home_form($form, &$form_state) {
 	);
 	
 	$form['phone_number'] = array (
-			'#title' => 'Phone number',
-			'#type' => 'textfield',
-			'#required' => true,
+		'#title' => 'Phone number',
+		'#type' => 'textfield',
+		'#required' => true,
 	);
 	
 	$form['submit'] = array (
 		'#type' => 'submit',
 		'#value' => 'Create Account',
 		'#submit' => array(
-				'home_form_submit'
+			'home_form_submit'
 		),
 		'#validate' => array(
 			'home_form_validate',
@@ -722,6 +737,7 @@ function manager_create_seasons_form($form, &$form_state) {
 			'#type' => 'textfield',
 			'#required' => true,
 	);
+
 	$form['start_time'] = array(
 			'#title' => 'Start of season',
 			'#type' => 'date_popup',
@@ -729,6 +745,7 @@ function manager_create_seasons_form($form, &$form_state) {
 			'#date_format' => $format,
 			'#required' => true,
 	);
+	
 	$form['end_time'] = array(
 			'#title' => 'End of season',
 			'#type' => 'date_popup',
@@ -751,7 +768,6 @@ function manager_create_seasons_form($form, &$form_state) {
 
 	return $form;
 }
-
 
 /**
  * Form with a table of boats and boat items to view
@@ -1002,8 +1018,6 @@ function create_boat_price_submit($form, &$form_state) {
 		$t->rollback();
 	}
 }
-
-
 
 
 /**
@@ -1268,6 +1282,126 @@ function renter_view_renters_form($form, &$form_state) {
 	
 }
 
+function renter_create_rental_form($form, &$form_state) {
+	
+	/*
+	 * Things for them to pick:
+	 * A cottage
+	 * A start date
+	 * A duration
+	 * Renters to accompany
+	 * A Car
+	 */
+	
+	$cottages = Cottage::instanceLoadMultiple();
+	
+	//show the availible cottages
+	$cottageOptions = array();
+	foreach($cottages as $cottage) {
+		$cottage->loadRentalItem();
+		
+		if($cottage->getProperty('rentalItem')->getProperty('is_active')) {
+			$cottageOptions[$cottage->getProperty("id")] = $cottage->getProperty('number');
+		}	
+	}
+	
+	$form['cottageselectfield'] = array (
+		'#type' => 'select',
+		'#title' => 'Cottage number',
+		'#options' => $cottageOptions,
+	);
+	
+	
+	$form['start_time'] = array(
+		'#title' => 'Start of Rental',
+		'#type' => 'date_popup',
+		'#default_value' => '2016-01-01',
+		'#date_format' =>  'Y-m-d',
+		'#required' => true,
+	);
+	
+	$form['duration'] = array (
+		'#title' => 'Duration',
+		'#type' => 'select',
+		'#options' => array (
+			2 => 'Two Days',
+			3 => 'Three Days',
+			7 => 'Seven Days',
+		),
+		'#required' => true,
+	);
+	
+	$u = new User();
+	$uid = $u->getProperty('uid');
+	
+	$renters = Renter::instanceLoadMultiple(array('account_uid' => $uid));
+	$options = array();
+	//iterate over the renters and create a table row for them
+	foreach($renters as $renter) {
+		$options[$renter->getProperty('id')] = array('name' => $renter->getProperty('name'));
+	}
+	
+	
+	$form['renters'] = array (
+		'#type' => 'tableselect',
+		'#prefix' => '<label>Who will accompany you on this trip, mate?</label>',
+		'#header' => array (
+			'name' => 'Name',
+		),
+		'#options' => $options,
+		'#empty' => 'Please contact someone important, you shouldn\'t have seen this',
+	);
+	
+	
+	$form['car_fieldset'] = array (
+		'#type' => 'fieldset',
+		'#title' => 'Provide Car information',
+		'#collapsible' => true,
+	);
+	
+	$form['car_fieldset']['licence_plate'] = array (
+		'#type' => 'textfield',
+		'#title' => 'Licence Place Number',
+	);
+	
+	$form['car_fieldset']['model'] = array (
+		'#type' => 'textfield',
+		'#title' => 'Model of the Car i.e Focus',
+	);
+	
+	$form['car_fieldset']['make'] = array (
+		'#type' => 'textfield',
+		'#title' => 'Make of the Car i.e Ford',
+	);
+	
+	$form['car_fieldset']['colour'] = array (
+		'#type' => 'textfield',
+		'#title' => 'Color of the Car i.e Blue',
+	);
+	
+	
+	$form['submit'] = array (
+		'#type' => 'submit',
+		'#value' => 'Place Rental',
+		'#submit' => array('renter_create_rental_form_submit'),
+		'#validate' => array('renter_create_rental_form_validate'),
+	);
+	
+	
+	return $form;
+}
+
+function renter_create_rental_form_validate($form, &$form_state) {
+	//TODO: check that colour, make & model are letters only
+	//check at least 1 renter
+	//check that requested duration, cottage and start time are valid and not taken
+	//(valid as in, fit within a price guide for that cottage)
+}
+
+function renter_create_rental_form_submit($form, &$form_state) {
+	//TODO: create the rental instance,
+	//TODO: link the renters with the rental instance
+}
 
 
 
