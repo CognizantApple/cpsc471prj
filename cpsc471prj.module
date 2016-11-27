@@ -489,6 +489,22 @@ function manager_new_price_guide_form_validate($form, &$form_state) {
 	if($guide->existsInDB()) {
 		form_set_error('name', 'A price guide with that name already exists');
 	}
+	
+	if(intval($form_state['values']['two_day']) <= 0) {
+		form_set_error('two_day', 'Prices must be positive numbers');
+	}
+	
+	if(intval($form_state['values']['three_day']) <= 0) {
+		form_set_error('three_day', 'Prices must be positive numbers');
+	}
+	
+	if(intval($form_state['values']['week']) <= 0) {
+		form_set_error('week', 'Prices must be positive numbers');
+	}
+	
+	if(intval($form_state['values']['rebook_discount']) <= 0) {
+		form_set_error('rebook_discount', 'Percents must be positive numbers');
+	}
 }
 
 /**
