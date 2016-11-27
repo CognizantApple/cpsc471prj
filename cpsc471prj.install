@@ -149,6 +149,13 @@ function cpsc471prj_schema() {
 				'length' => 20,
 				'not null' => true,
 			),
+			'has_been_confirmed' => array (
+				'type' => 'int',
+				'size' => 'tiny',
+				'not null' => true,
+				'unsigned' => true,
+				'default' => 0,
+			),
 		),
 		'primary key' => array('start_time', 'renters_uid'),
 	);

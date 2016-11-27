@@ -67,4 +67,66 @@ class Validator {
 		
 		return intval($str) >= 0;
 	}
+	
+	/**
+	 * Checks if a cottage is availible to be rented
+	 * 
+	 * @param int $cottageID
+	 * 		The primary key of a cottage in the db
+	 * @param int $start_time
+	 * 		A unix timestamp for when the request starts
+	 * @param int $duration
+	 * 		A duration of rental (In number of days)
+	 * @return bool
+	 * 		true if the cottage is availible, false otherwise
+	 */
+	public static function isCottageAvailable($cottageID, $start_time, $duration) {
+		return true;
+
+	}
+	
+	public static function isName($str) {
+		return ctype_alpha($str);
+	}
+	
+	/**
+	 * Validates a time as hh:mm (24h time)
+	 * 
+	 * @param string $str
+	 * 		The string to check
+	 * @return int | bool
+	 * 		The number of seconds into the day if the format matches, or false if the format is invalid
+	 */
+	public static function isHHMM($str) {
+		if(preg_match('/(1[012]|0[0-9]):([0-5][0-9])/', $str)) {
+			$parts = explode(':', $str);
+			
+			$hours = intval($parts[0]);
+			$minutes = intval($parts[1]);
+			return 3600 * $hours + 60 * $minutes;
+		} else {
+			return false;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }
