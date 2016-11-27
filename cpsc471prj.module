@@ -116,6 +116,20 @@ function cpsc471prj_menu(){
 		),
 	);
 	
+	$items['scc/renter/makeboatrental'] = array (
+			'title' => 'Place Boat/Accessory Rental',
+			'description' => 'Place Boat Rental',
+			'page callback' => 'drupal_get_form',
+			'page arguments' => array (
+					'renter_create_boat_rental_form',
+			),
+			'menu_name' => 'cpsc',
+			'access callback' => 'cpsc471_access',
+			'access arguments' => array (
+					'renter'
+			),
+	);
+	
 	$items['scc/manager'] = array (
 		'title' => 'Manager',
 		'description' => 'Manager main page',
@@ -787,15 +801,37 @@ function manager_view_boats_form($form, &$form_state) {
 			'capacity' => array (
 					'data' => 'Capacity (for watercraft)',
 			),
+			'duration' => array (
+					'data' => 'Duration (hours)',
+			),
+			'price' => array (
+					'data' => 'Price',
+			),
 	);
 	
 	$rows = array();
 	
+	$boatRates = BoatItemRate::instanceLoadMultiple();
+	
 	foreach($boats as $item) {
+		$boatRates = BoatItemRate::instanceLoadMultiple(array('item_id' => $item ->getProperty('id')));
+		$item_duration = '';
+		$item_price = '';
+		foreach($boatRates as $item_rate){
+			$item_duration .= $item_rate ->getProperty('duration'). '<br>';
+			$item_price .= '$' . $item_rate ->getProperty('price') . '<br>';
+		}
+		if(count($boatRates) == 0){
+			$item_duration = 'No price guide.';
+			$item_price = 'No price guide.';
+		}
+		
 		$row = array('data' => array() );
 		$row['data']['type'] = $item ->getProperty('type');
 		$row['data']['name'] = $item ->getProperty('name');
 		$row['data']['capacity'] = $item ->getProperty('capacity');
+		$row['data']['duration'] = $item_duration;
+		$row['data']['price'] = $item_price;
 		$rows[] = $row;
 	}
 	
@@ -1279,6 +1315,143 @@ function renter_view_renters_form($form, &$form_state) {
 	
 	return $form;
 	
+	
+}
+
+function renter_create_boat_rental_form($form, &$form_state) {
+	/*
+	 * Things for them to pick:
+	 * A Boat rental item
+	 * A date
+	 * A duration - ajax populated via boat_rental_item_rate
+	 * Renters to accompany - ajax populated ONLY if a boat is selected... WAIL. 
+	 */
+	
+	$items = BoatItem::instanceLoadMultiple();
+	//show the availible boatRentalItems
+	$itemOptions = array();
+	foreach($items as $item) {
+		$item->loadRentalItem();
+	
+		if($item->getProperty('rentalItem')->getProperty('is_active')) {
+			$capacityString = '';
+			if($item->getProperty('type') == 'Boat'){
+				$capacityString = ' - Capacity: ' . $item->getProperty('capacity');
+			}
+			$itemOptions[$item->getProperty("id")] = $item->getProperty('type') . 
+				' - ' . $item->getProperty('name') . $capacityString;
+		}
+	}
+	
+	$selected = isset($form_state['values']['itemselectfield']) ?
+		$form_state['values']['itemselectfield'] : key($itemOptions);
+	
+	$form['itemselectfield'] = array (
+			'#type' => 'select',
+			'#title' => 'Boat/Accessory',
+			'#options' => $itemOptions,
+			'#default_value' => $selected, // ??
+			'#ajax' => array(
+					// when 'event' occurs, drupal will do an ajax request in the bg,
+					// usually the default value is sufficient (change for select elements)
+					//'event' => 'change',
+					'callback' => 'ajax_boat_item_dropdown_callback',
+					'wrapper' => 'dropdown_duration_replace',
+			),
+	);
+	
+	$form['rental_date'] = array(
+			'#title' => 'Rental',	//it says rental after this but that's suboptimal formatting
+			'#type' => 'date_popup',
+			'#default_value' => '2016-01-01',
+			'#date_format' =>  'Y-m-d',
+			'#required' => true,
+	);
+	
+	// this is a drop down menu populated by values
+	// in an items corresponding boat_rental_item_rate
+	
+	  $form['durationSelect'] = array (
+		'#title' => 'Duration',
+		'#type' => 'select',
+	  	'#prefix' => '<div id = "dropdown_duration_replace">',
+	  	'#suffix' => '</div>',
+	  		
+	  	//When the form is rebuilt during ajax processing, the $selected variable
+	  	// will now have the new value and so the options will change.
+		'#options' => _ajax_duration_get_second_dropdown_options($selected),
+	  
+	  	
+	  	'#default_value' => isset($form_state['values']['durationSelect']) ?
+	  		$form_state['values']['durationSelect'] : '',
+	  		
+		//'#required' => true,
+	);
+	 
+	
+	$u = new User();
+	$uid = $u->getProperty('uid');
+	
+	$renters = Renter::instanceLoadMultiple(array('account_uid' => $uid));
+	$options = array();
+	//iterate over the renters and create a table row for them
+	foreach($renters as $renter) {
+		$options[$renter->getProperty('id')] = array('name' => $renter->getProperty('name'));
+	}
+	
+	//TODO - edit so that renters are only selectable for BOAT type rentals. WAIL.
+	$form['renters'] = array (
+			'#type' => 'tableselect',
+			'#prefix' => '<label>Select those participating in this rental:</label>',
+			'#header' => array (
+					'name' => 'Name',
+			),
+			'#options' => $options,
+			'#empty' => 'Please contact someone important, you shouldn\'t have seen this',
+	);
+
+	$form['submit'] = array (
+			'#type' => 'submit',
+			'#value' => 'Place Rental',
+			'#submit' => array('renter_create_boat_rental_form_submit'),
+			'#validate' => array('renter_create_boat_rental_form_validate'),
+	);
+	
+	return $form;
+}
+
+function renter_create_boat_rental_form_validate($form, &$form_state) {
+	//TODO: 
+	//check that requested duration, item and start time are valid and not taken
+	//(valid as in, fit within a price guide for that boat?? haha)
+}
+
+function renter_create_boat_rental_form_submit($form, &$form_state) {
+	//TODO: create the rental instance,
+	//TODO: link the renters with the rental instance
+}
+
+function ajax_boat_item_dropdown_callback($form, $form_state) {
+	return $form['durationSelect'];
+}
+
+function  _ajax_duration_get_second_dropdown_options($key = '') {
+	
+	// based on the id of key (boatrentalitemID) we select
+	// the values in boatRentalItemRate with the same key and return those durations.
+	// and prices! :)
+	//$u = new User();
+	//$uid = $u->getProperty('uid');
+	
+	$rates = BoatItemRate::instanceLoadMultiple(array('item_id' => $key));
+	$options = array();
+	//iterate over the renters and create a table row for them
+	foreach($rates as $rate) {
+		$options[$rate->getProperty('start_time')] = $rate->getProperty('duration') .
+			' hours : $' . $rate->getProperty('price');
+	}
+	
+	return $options;
 	
 }
 
