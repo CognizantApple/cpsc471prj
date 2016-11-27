@@ -9,6 +9,7 @@ module_load_include('php', 'cpsc471prj', 'includes/instances/Season');
 module_load_include('php', 'cpsc471prj', 'includes/instances/CottagePriceGuide');
 module_load_include('php', 'cpsc471prj', 'includes/instances/PricedFor');
 module_load_include('php', 'cpsc471prj', 'includes/instances/BoatItem');
+module_load_include('php', 'cpsc471prj', 'includes/instances/Rental');
 module_load_include('php', 'cpsc471prj', 'includes/Validator');
 
 
@@ -1369,20 +1370,15 @@ function renter_create_rental_form($form, &$form_state) {
 		'#type' => 'textfield',
 		'#title' => 'Licence Place Number',
 	);
-	
-	$form['car_fieldset']['model'] = array (
+
+	$form['car_fieldset']['colour'] = array (
 		'#type' => 'textfield',
-		'#title' => 'Model of the Car i.e Focus',
+		'#title' => 'Color of the Car i.e Blue',
 	);
 	
 	$form['car_fieldset']['make'] = array (
 		'#type' => 'textfield',
 		'#title' => 'Make of the Car i.e Ford',
-	);
-	
-	$form['car_fieldset']['colour'] = array (
-		'#type' => 'textfield',
-		'#title' => 'Color of the Car i.e Blue',
 	);
 	
 	
@@ -1405,10 +1401,6 @@ function renter_create_rental_form_validate($form, &$form_state) {
 	
 	if(!Validator::isCottageAvailable($cottageID, $start_time, $duration)) {
 		form_set_error('start_time', 'Cottage is unavailible at that time, please pick another time, cottage or duration');
-	}
-	
-	if(!Validator::isName($form_state['values']['model'])) {
-		form_set_error('model', 'Model name must be letters only.');
 	}
 	
 	if(!Validator::isName($form_state['values']['make'])) {
@@ -1439,6 +1431,55 @@ function renter_create_rental_form_validate($form, &$form_state) {
 }
 
 function renter_create_rental_form_submit($form, &$form_state) {
+	$start_time = strtotime($form_state['values']['start_time']);
+	$duration = $form_state['values']['duration'];
+	$cottageID = $form_state['values']['cottage'];
+	$licence = $form_state['values']['licence_plate'];
+	$make = $form_state['values']['make'];
+	$colour = $form_state['values']['colour'];
+	
+	$u = new User();
+	
+	$rental = new Rental('new', array(
+		'start_time' => $start_time,
+		'renters_uid' => $u->getProperty('uid'),
+		'duration' => $duration * 24, //hours per day
+		'estimated_arrival_time' => $start_time + $form_state['values']['estimated_arrival_time'],
+		'returning' => Rental::isReturningRental($u->getProperty('uid')) ? 1 : 0,
+		'rental_type' => 'Cottage',
+	));
+	
+	$t = db_transaction();
+	try {
+		if($rental->create()) {
+			
+	
+		
+			$rental->linkItem($cottageID);
+			foreach($form_state['values']['renters'] as $renterID => $renter_row) {
+				if($renter_row) {
+					$rental->linkRenter($renterID);
+				}
+			}
+			
+			$rental->addCar($licence, $make, $colour);
+			
+			//TODO: add link to approval
+			drupal_set_message('Your rental has been reserved, please review it and approve it.');
+			
+		} else {
+			drupal_set_message('An error occurred while creating a rental, please try again');
+		}
+	} catch (Exception $e) {
+		drupal_set_message($e->getMessage(), 'error');
+		$t->rollback();
+	}
+
+	
+	
+	
+	
+	
 	//TODO: create the rental instance,
 	//TODO: link the renters with the rental instance
 }

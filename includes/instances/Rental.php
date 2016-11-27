@@ -36,7 +36,7 @@ class Rental extends DBTableInstance {
 	
 	/**
 	 * An array of the rented items, indexed by id, only loaded after $this->loadRentedItems();
-	 * @var RentalItem[]
+	 * @var Cottage[] | BoatItem[]
 	 */
 	protected $rentedItems;
 	
@@ -56,12 +56,18 @@ class Rental extends DBTableInstance {
 		parent::__construct($type, $data);
 	}
 	
+	/**
+	 * Loads the rental account that created this rental
+	 */
 	public function loadRentalAccount() {
 		$this->rentalAccount = new RentalAccount('standard', array(
 			'uid' => $this->renters_uid_p,
 		));
 	}
 	
+	/**
+	 * Loads the items that are associated with this rental
+	 */
 	public function loadRentedItems() {
 		
 		
@@ -83,6 +89,10 @@ class Rental extends DBTableInstance {
 		}
 	}
 	
+	
+	/**
+	 * Loads the renters that are going on this trip
+	 */
 	public function loadRenters() {
 		$ids = array_keys(db_query('select t.renter_id from ' . DBConf::$rented . ' as t where rental_start_time = ? and renters_uid = ?', array(
 			$this->start_time_p,
@@ -98,6 +108,38 @@ class Rental extends DBTableInstance {
 		}
 		
 		
+	}
+	
+	public function linkItem($itemID) {
+		db_query('insert into ' . DBConf::$rented . '(rentable_item_id, rental_start_time, uid) values (?, ?, ?)', array(
+			$itemID,
+			$this->start_time_p,
+			$this->renters_uid_p,
+		));
+	}
+	
+	public function linkRenter($renterID) {
+		db_query('insert into ' . DBConf::$rentalRenters . '(renter_id, account_uid, rental_start_time, renters_uid) values (?, ? , ?, ?)', array(
+			$renterID,
+			$this->renters_uid_p,
+			$this->start_time_p,
+			$this->renters_uid_p,
+		));
+	}
+	
+	public function addCar($licence, $make, $colour) {
+		db_query('insert into ' . DBConf::$rentersCar . '(liscence_plate, start_time, renter_uid, colour, make) values (?, ? , ?, ?, ?)', array(
+			$licence,
+			$this->start_time_p,
+			$this->renters_uid_p,
+			$colour,
+			$make,
+		));
+	}
+	
+	public static function isReturningRental() {
+		//TODO
+		return false;
 	}
 }
 

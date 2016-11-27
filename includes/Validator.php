@@ -81,8 +81,6 @@ class Validator {
 	 * 		true if the cottage is availible, false otherwise
 	 */
 	public static function isCottageAvailable($cottageID, $start_time, $duration) {
-		scc_debug(func_get_args());
-		//TODO
 		return true;
 
 	}
