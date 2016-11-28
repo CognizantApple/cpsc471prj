@@ -1617,7 +1617,7 @@ function renter_create_rental_form_submit($form, &$form_state) {
 		'renters_uid' => $u->getProperty('uid'),
 		'duration' => $duration * 24, //hours per day
 		'estimated_arrival_time' => $start_time + $form_state['values']['estimated_arrival_time'],
-		'returning' => Rental::isReturningRental($u->getProperty('uid')) ? 1 : 0,
+		'returning' => Rental::isReturningRental($start_time, $u->getProperty('uid')) ? 1 : 0,
 		'rental_type' => 'Cottage',
 	));
 	
