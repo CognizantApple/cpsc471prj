@@ -1389,7 +1389,6 @@ function renter_create_rental_form($form, &$form_state) {
 		'#validate' => array('renter_create_rental_form_validate'),
 	);
 	
-	
 	return $form;
 }
 
@@ -1398,9 +1397,9 @@ function renter_create_rental_form_validate($form, &$form_state) {
 	$duration = $form_state['values']['duration'];
 	$cottageID = $form_state['values']['cottage'];
 	
-	
-	if(!Validator::isCottageAvailable($cottageID, $start_time, $duration)) {
-		form_set_error('start_time', 'Cottage is unavailible at that time, please pick another time, cottage or duration');
+	$message;
+	if(!Validator::isCottageAvailable($cottageID, $start_time, $duration, $message)) {
+		form_set_error('start_time', $message);
 	}
 	
 	if(!Validator::isName($form_state['values']['make'])) {

@@ -80,7 +80,7 @@ class Rental extends DBTableInstance {
 		$ids = array_keys(db_query('select t.rentable_item_id from ' . DBConf::$rented . ' as t where rental_start_time = ? and renters_uid = ?', array(
 			$this->start_time_p,
 			$this->renters_uid_p,
-		))->execute()->fetchAllAssoc('rentable_item_id'));
+		))->fetchAllAssoc('rentable_item_id'));
 		
 		$this->rentedItems = array();
 		
@@ -97,7 +97,7 @@ class Rental extends DBTableInstance {
 		$ids = array_keys(db_query('select t.renter_id from ' . DBConf::$rented . ' as t where rental_start_time = ? and renters_uid = ?', array(
 			$this->start_time_p,
 			$this->renters_uid_p,
-		))->execute()->fetchAllAssoc('renter_id'));
+		))->fetchAllAssoc('renter_id'));
 		
 		$this->renterInstances = array();
 		
@@ -137,9 +137,23 @@ class Rental extends DBTableInstance {
 		));
 	}
 	
-	public static function isReturningRental() {
-		//TODO
-		return false;
+	/**
+	 * Checks if a rental is being booked by someone that has previosly booked a rental within the past year,
+	 * (said rental must have already happened as well)
+	 * 
+	 * Intended For Cottages ONLY
+	 * 
+	 * @param int $start_time
+	 * 		The currently requested start time for the rental
+	 * @param int $uid
+	 * 		The rental account uid creating the rental
+	 */
+	public static function isReturningRental($start_time, $uid) {
+		$q = db_query('select r.start_time from rental as r where r.renters_uid = ? and r.start_time < ? and r.start_time > ? and r.rental_type = ?', array(
+			$uid, $start_time, $start_time - 24 * 3600 * 365, 'Cottage',
+		));
+		
+		return $q->fetchAssoc() !== false;
 	}
 }
 
