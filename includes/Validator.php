@@ -77,11 +77,55 @@ class Validator {
 	 * 		A unix timestamp for when the request starts
 	 * @param int $duration
 	 * 		A duration of rental (In number of days)
+	 * @param string $message
+	 * 		Optional output parameter for the reason the cottage isn't availible
 	 * @return bool
 	 * 		true if the cottage is availible, false otherwise
 	 */
-	public static function isCottageAvailable($cottageID, $start_time, $duration) {
-		return true;
+	public static function isCottageAvailable($cottageID, $start_time, $duration, &$message = '') {
+		$duration *= 3600;
+		
+		//fetch all other rentals on the provided cottage
+		$rows = db_query('select r.start_time, r.duration from rented as d, rental as r where 
+				d.rentable_item_id = ? and d.uid = r.renters_uid and d.rental_start_time = r.start_time', array(
+					$cottageID,
+				));
+		
+		$otherRentals = array();
+		
+		while($row = $rows->fetchAssoc()) {
+			$otherRentals[] = $row;
+		}
+		
+		
+		//if the provided time range overlaps another rentals time range, flag an error
+		foreach($otherRentals as $otherRental) {
+			if($start_time + $duration > $otherRental['start_time'] && $start_time < $otherRental['start_time'] + $otherRental['duration'] * 3600) {
+				$message = 'That time slot has already been booked, please select another time';
+				return false;
+			}
+		}
+		
+		$seasons = array();
+		
+		//now we need to check that the provided range falls within a price guide for the season
+		$rows = db_query('select s.start_time, s.end_time from season as s, priced_for as p where p.cottage_id = ? and p.season_start_time = s.start_time', array($cottageID));
+		
+		while($row = $rows->fetchAssoc()) {
+			$seasons[] = $row;
+		}
+		
+		//check that the start time falls within a season
+		foreach($seasons as $season) {
+			if($start_time >= $season['start_time'] && $start_time <= $season['end_time']) {
+				
+				return true;
+			}
+		}
+		
+		$message = 'No booking rates have been set for the selected time, the resort is not open';
+		
+		return false;
 
 	}
 	

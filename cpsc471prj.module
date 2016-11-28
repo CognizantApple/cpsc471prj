@@ -1635,7 +1635,6 @@ function renter_create_rental_form($form, &$form_state) {
 		'#validate' => array('renter_create_rental_form_validate'),
 	);
 	
-	
 	return $form;
 }
 
@@ -1644,9 +1643,9 @@ function renter_create_rental_form_validate($form, &$form_state) {
 	$duration = $form_state['values']['duration'];
 	$cottageID = $form_state['values']['cottage'];
 	
-	
-	if(!Validator::isCottageAvailable($cottageID, $start_time, $duration)) {
-		form_set_error('start_time', 'Cottage is unavailible at that time, please pick another time, cottage or duration');
+	$message;
+	if(!Validator::isCottageAvailable($cottageID, $start_time, $duration, $message)) {
+		form_set_error('start_time', $message);
 	}
 	
 	if(!Validator::isName($form_state['values']['make'])) {
@@ -1691,7 +1690,7 @@ function renter_create_rental_form_submit($form, &$form_state) {
 		'renters_uid' => $u->getProperty('uid'),
 		'duration' => $duration * 24, //hours per day
 		'estimated_arrival_time' => $start_time + $form_state['values']['estimated_arrival_time'],
-		'returning' => Rental::isReturningRental($u->getProperty('uid')) ? 1 : 0,
+		'returning' => Rental::isReturningRental($start_time, $u->getProperty('uid')) ? 1 : 0,
 		'rental_type' => 'Cottage',
 	));
 	
