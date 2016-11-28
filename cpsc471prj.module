@@ -1477,8 +1477,9 @@ function renter_create_boat_rental_form_submit($form, &$form_state) {
 			'renters_uid' => $u->getProperty('uid'),
 			'duration' => $duration, //hours
 			'estimated_arrival_time' => $start_time,
-			'returning' => Rental::isReturningRental($u->getProperty('uid')) ? 1 : 0,
+			//'returning' => Rental::isReturningRental($u->getProperty('uid')) ? 1 : 0,
 			'rental_type' => 'BoatItem',
+			
 	));
 	xdebug_break();
 	$t = db_transaction();
@@ -1684,13 +1685,14 @@ function renter_create_rental_form_submit($form, &$form_state) {
 	$colour = $form_state['values']['colour'];
 	
 	$u = new User();
+	$return = Rental::isReturningRental($start_time, $u->getProperty('uid')) ? 1 : 0;
 	
 	$rental = new Rental('new', array(
 		'start_time' => $start_time,
 		'renters_uid' => $u->getProperty('uid'),
 		'duration' => $duration * 24, //hours per day
 		'estimated_arrival_time' => $start_time + $form_state['values']['estimated_arrival_time'],
-		'returning' => Rental::isReturningRental($start_time, $u->getProperty('uid')) ? 1 : 0,
+		'returning' => $return,
 		'rental_type' => 'Cottage',
 	));
 	

@@ -143,6 +143,7 @@ function cpsc471prj_schema() {
 				'type' => 'int',
 				'size' => 'tiny',
 				'not null' => true,
+				'default' => 0,
 			),
 			'rental_type' => array(
 				'type' => 'varchar',
