@@ -1480,7 +1480,7 @@ function renter_create_boat_rental_form_submit($form, &$form_state) {
 			'returning' => Rental::isReturningRental($u->getProperty('uid')) ? 1 : 0,
 			'rental_type' => 'BoatItem',
 	));
-	
+	xdebug_break();
 	$t = db_transaction();
 	try {
 		if($rental->create()) {
