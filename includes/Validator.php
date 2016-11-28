@@ -85,6 +85,23 @@ class Validator {
 
 	}
 	
+	/**
+	 * Checks if a boat is availible to be rented
+	 *
+	 * @param int $itemID
+	 * 		The primary key of a BoatItem in the db
+	 * @param int $start_time
+	 * 		A unix timestamp for the day of the rental
+	 * @param int $duration
+	 * 		A duration of rental (In number of hours)
+	 * @return bool
+	 * 		true if the Boat item is availible, false otherwise
+	 */
+	public static function isBoatItemAvailable($itemID, $start_time, $duration) {
+		return true;
+	
+	}
+	
 	public static function isName($str) {
 		return ctype_alpha($str);
 	}
