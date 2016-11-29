@@ -69,15 +69,13 @@ class Rental extends DBTableInstance {
 	 * Loads the items that are associated with this rental
 	 */
 	public function loadRentedItems() {
-		
-		
 		if($this->rental_type_p == 'Cottage') {
 			$itemType = 'Cottage';	
 		} else {
 			$itemType = 'BoatItem';
 		}
-		
-		$ids = array_keys(db_query('select t.rentable_item_id from ' . DBConf::$rented . ' as t where rental_start_time = ? and renters_uid = ?', array(
+	
+		$ids = array_keys(db_query('select t.rentable_item_id from ' . DBConf::$rented . ' as t where rental_start_time = ? and uid = ?', array(
 			$this->start_time_p,
 			$this->renters_uid_p,
 		))->fetchAllAssoc('rentable_item_id'));
