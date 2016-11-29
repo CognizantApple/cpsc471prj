@@ -86,8 +86,9 @@ class Validator {
 		$duration *= 3600;
 		
 		//fetch all other rentals on the provided cottage
+		// note: modified by Andy on nov 28
 		$rows = db_query('select r.start_time, r.duration from rented as d, rental as r where 
-				d.rentable_item_id = ? and d.uid = r.renters_uid and d.rental_start_time = r.start_time', array(
+				d.rentable_item_id = ? and d.uid = r.renters_uid and d.rental_id = r.rental_id', array(
 					$cottageID,
 				));
 		
@@ -142,7 +143,48 @@ class Validator {
 	 * 		true if the Boat item is availible, false otherwise
 	 */
 	public static function isBoatItemAvailable($itemID, $start_time, $duration) {
-		return true;
+		$duration *= 3600;
+		
+		$rows = db_query('select r.start_time, r.duration from rented as d, rental as r where
+				d.rentable_item_id = ? and d.uid = r.renters_uid and d.rental_id = r.rental_id', array(
+								$itemID,
+						));
+		
+		$otherRentals = array();
+		
+		while($row = $rows->fetchAssoc()) {
+			$otherRentals[] = $row;
+		}
+		
+		
+		//if the provided time range overlaps another rentals time range, flag an error
+		foreach($otherRentals as $otherRental) {
+			if($start_time + $duration > $otherRental['start_time'] && $start_time < $otherRental['start_time'] + $otherRental['duration'] * 3600) {
+				$message = 'That time slot has already been booked, please select another time';
+				return false;
+			}
+		}
+		
+		$rates = array();
+		
+		//now we need to check that the provided range falls within a boat rental rate's times
+		$rows = db_query('select s.start_time, s.end_time from boat_rental_item_rate as s where s.item_id = ?', array($itemID));
+		
+		while($row = $rows->fetchAssoc()) {
+			$rates[] = $row;
+		}
+		
+		//check that the start time falls within a rate
+		foreach($rates as $rate) {
+			if($start_time >= $rate['start_time'] && ($rate['end_time'] == null || $start_time <= $rate['end_time']) ) {
+		
+				return true;
+			}
+		}
+		
+		$message = 'No rental rates have been set for the selected time, the resort is not open';
+		
+		return false;
 	
 	}
 	

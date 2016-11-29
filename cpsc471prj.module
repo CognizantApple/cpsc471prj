@@ -1390,7 +1390,6 @@ function renter_create_boat_rental_form($form, &$form_state) {
 		'#type' => 'select',
 	  	'#prefix' => '<div id = "dropdown_duration_replace">',
 	  	'#suffix' => '</div>',
-	  		
 	  	//When the form is rebuilt during ajax processing, the $selected variable
 	  	// will now have the new value and so the options will change.
 		'#options' => _ajax_duration_get_second_dropdown_options($selected),
@@ -1427,8 +1426,8 @@ function renter_create_boat_rental_form($form, &$form_state) {
 	$form['submit'] = array (
 			'#type' => 'submit',
 			'#value' => 'Place Rental',
-			'#submit' => array('renter_create_boat_rental_form_submit'),
 			'#validate' => array('renter_create_boat_rental_form_validate'),
+			'#submit' => array('renter_create_boat_rental_form_submit'),
 	);
 	
 	return $form;
@@ -1439,7 +1438,17 @@ function renter_create_boat_rental_form_validate($form, &$form_state) {
 	//scc_debug($form_state['values']);
 	
 	$start_time = strtotime($form_state['values']['rental_date']) + Validator::isHHMM($form_state['values']['morning_afternoon_field']);
-	$duration = $form_state['values']['durationSelect'];
+	
+	// need to get the duration in a slightly more complicated way because of the fancy ajax stuff
+	$existing_rates = BoatItemRate::instanceLoadMultiple(array('item_id' => $form_state['values']['itemselectfield'],
+															'start_time' => $form_state['values']['durationSelect']
+	));
+	
+	if(!($existing_rates)){
+		form_set_error('No rates found for this item.');
+		return;
+	}
+	$duration = $existing_rates[0]->getProperty('duration');
 	$boatItemID = $form_state['values']['itemselectfield'];
 	
 	if(!($duration)){
@@ -1465,8 +1474,14 @@ function renter_create_boat_rental_form_validate($form, &$form_state) {
 }
 
 function renter_create_boat_rental_form_submit($form, &$form_state) {
+	//scc_debug($form_state['values']);
+	
 	$start_time = strtotime($form_state['values']['rental_date']) + Validator::isHHMM($form_state['values']['morning_afternoon_field']);
-	$duration = $form_state['values']['durationSelect'];
+	// need to get the duration in a slightly more complicated way because of the fancy ajax stuff
+	$existing_rates = BoatItemRate::instanceLoadMultiple(array('item_id' => $form_state['values']['itemselectfield'],
+			'start_time' => $form_state['values']['durationSelect']
+	));
+	$duration = $existing_rates[0]->getProperty('duration');
 	$boatItemID = $form_state['values']['itemselectfield'];
 	
 	$u = new User();
@@ -1497,7 +1512,8 @@ function renter_create_boat_rental_form_submit($form, &$form_state) {
 			//$rental->addCar($licence, $make, $colour);
 				
 			//TODO: add link to approval
-			drupal_set_message('Your rental has been reserved, please review it and approve it.');
+			drupal_set_message('Your rental has been reserved, please review it and approve it.'
+						. 'your price for this rental is: $' . $rental->getPrice());
 				
 		} else {
 			drupal_set_message('An error occurred while creating a rental, please try again');
@@ -1522,8 +1538,17 @@ function  _ajax_duration_get_second_dropdown_options($key = '') {
 	$options = array();
 	//iterate over the renters and create a table row for them
 	foreach($rates as $rate) {
+		//TODO for now this will pretty much always be true, since our interface
+		// for making rental rates doesn't have date selection. so all
+		// rental rates created for an item will be valid until that's changed.
+		// KEEP IN MIND THO that time() won't work, it should be the time the user's selected
+		// for their rental.
+		//if($rate->getProperty('start_time') < time() 
+		//		&& ($rate->getProperty('end_time') == null) || $rate->getProperty('end_time') > time())
+		//{
 		$options[$rate->getProperty('start_time')] = $rate->getProperty('duration') .
 			' hours : $' . $rate->getProperty('price');
+		//}
 	}
 	
 	return $options;
@@ -1712,7 +1737,8 @@ function renter_create_rental_form_submit($form, &$form_state) {
 			$rental->addCar($licence, $make, $colour);
 			
 			//TODO: add link to approval
-			drupal_set_message('Your rental has been reserved, please review it and approve it.');
+			drupal_set_message('Your rental has been reserved, please review it and approve it.'
+						. 'your price for this rental is: $' . $rental->getPrice());
 			
 		} else {
 			drupal_set_message('An error occurred while creating a rental, please try again');

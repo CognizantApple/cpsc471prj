@@ -134,6 +134,7 @@ abstract class DBTableInstance {
 		//assembe the sections
 		$sql = $sql . $colNames . ' VALUES ' . $colValues;
 		xdebug_break();
+		//$deez_nuts = 1/0;
 		//execute the query
 		db_query($sql, $parameters);
 		//reload ourselves to fetch default values
