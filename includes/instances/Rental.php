@@ -175,10 +175,9 @@ class Rental extends DBTableInstance {
 			$this->loadRentedItems();
 			$priceTotal = 0;
 			$item_id;
-			if(count($this->rentedItems) == 1){
-				foreach($this->rentedItems as $item){
-					$item_id = $item->getProperty('id');
-				}
+			foreach($this->rentedItems as $item){
+				$item_id = $item->getProperty('id');
+			
 				//find the season based on start time.
 				$seasons = Season::instanceLoadMultiple();
 				$final_season = array();
@@ -201,19 +200,21 @@ class Rental extends DBTableInstance {
 						));
 						
 						// there MUST be only one guide. we really don't even have to check.
+						$p = 0;
 						if($this->getProperty('duration') <= 48){
-							$priceTotal = $guide[0]->getProperty('two_day');
+							$p = $guide[0]->getProperty('two_day');
 						}
 						else if($this->getProperty('duration') <= 72){
-							$priceTotal = $guide[0]->getProperty('three_day');
+							$p = $guide[0]->getProperty('three_day');
 						}
 						else{
-							$priceTotal = $guide[0]->getProperty('week');
+							$p = $guide[0]->getProperty('week');
 						}
 						if($this->getProperty('returning') != 0){
-							$priceTotal = $priceTotal * (100 - ($guide[0]->getProperty('rebook_discount')))/100;
+							$p = $p * (100 - ($guide[0]->getProperty('rebook_discount')))/100;
 						}
-							return $priceTotal;
+						
+						$priceTotal += $p;
 					}
 					else{
 						$message = 'There are too many valid price guides for the given cottage and season.';
@@ -226,10 +227,7 @@ class Rental extends DBTableInstance {
 					return 9999;
 				}
 			}
-			else{
-				$message = 'There has been a terrible accident, multiple items linked to one rental.';
-				return 9999;
-			}
+			
 			
 			return $priceTotal;
 		} 
@@ -253,7 +251,7 @@ class Rental extends DBTableInstance {
 					}
 					if(count($finalRate) == 1){
 						// there should be only one.
-						$priceTotal = $finalRate[0]->getProperty('price');
+						$priceTotal += $finalRate[0]->getProperty('price');
 					}
 					else{
 						$message = 'Could not find any rental rates for this item at specified time.';
