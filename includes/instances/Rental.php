@@ -76,8 +76,6 @@ class Rental extends DBTableInstance {
 	 * 		THIS FUNCTION SHOULD ONLY RETURN A SINGLE RENTED ITEM.
 	 */
 	public function loadRentedItems() {
-		
-		
 		if($this->rental_type_p == 'Cottage') {
 			$itemType = 'Cottage';	
 		} else {

@@ -131,6 +131,20 @@ function cpsc471prj_menu(){
 			),
 	);
 	
+	$items['scc/renter/viewrentals'] = array (
+			'title' => 'View your rentals',
+			'description' => 'Place Boat Rental',
+			'page callback' => 'drupal_get_form',
+			'page arguments' => array (
+					'renter_view_rentals_form',
+			),
+			'menu_name' => 'cpsc',
+			'access callback' => 'cpsc471_access',
+			'access arguments' => array (
+					'renter'
+			),
+	);
+	
 	$items['scc/manager'] = array (
 		'title' => 'Manager',
 		'description' => 'Manager main page',
@@ -1747,17 +1761,72 @@ function renter_create_rental_form_submit($form, &$form_state) {
 		drupal_set_message($e->getMessage(), 'error');
 		$t->rollback();
 	}
-
-	
-	
-	
-	
-	
-	//TODO: create the rental instance,
-	//TODO: link the renters with the rental instance
 }
 
+/**
+ * Shows a form where renters can view both their boat and cottage rentals in one place
+ */
+function renter_view_rentals_form($form, &$form_state) {
+	$u = new User();
+	
+	//get the cottage rentals
+	$rentals = Rental::instanceLoadMultiple(array(
+		'renters_uid' => $u->getProperty('uid'),
+	));
+	
+	
+	
+	
+	//create the table options
+	$options = array();
+	
+	
+	foreach($rentals as $rentalID => $rental) {
+		$rental->loadRentedItems();
+		
+		$items = $rental->getProperty('rentedItems');
 
+		$options[$rentalID] = array (
+			'cottageNumber'	=> '',
+			'start_date' => '',
+			'duration' => '',
+			'price' => ''
+		);
+		foreach($items as $itemID => $item) {
+			if($options[$rentalID]['cottageNumber'] != '') {
+				$options[$rentalID]['cottageNumber'] .= '<br>';
+				$options[$rentalID]['start_date'] .= '<br>';
+				$options[$rentalID]['duration'] .= '<br>';
+				$options[$rentalID]['price'] .= '<br>';
+			}
+			
+			
+			$cottageNumber = $item->getProperty('number');
+			$startDate = $rental->getProperty('start_time');
+			$duration = $rental->getProperty('duration') / 24;
+			$price = 'TODO';
+			
+			$options[$rentalID]['cottageNumber'] .= $cottageNumber;
+			$options[$rentalID]['start_date'] .= $startDate;
+			$options[$rentalID]['duration'] .= $duration;
+			$options[$rentalID]['price'] .= $price;
+		}
+	}
+	
+	$form['rental_table'] = array (
+		'#type' => 'tableselect',
+		'#header' => array (
+			'cottageNumber'	=> 'Cottage Number',
+			'start_date' => 'Start Date',
+			'duration' => 'Duration',
+			'price' => 'Price'
+		),
+		'#options' => $options,
+	);
+	
+	return $form;
+	
+}
 
 ////////////////////////////
 //Demo code below this line
