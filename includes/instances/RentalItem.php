@@ -1,6 +1,10 @@
 <?php
 module_load_include("php", "cpsc471prj", "includes/database/DBConf");
 module_load_include("php", "cpsc471prj", "includes/database/DBTableInstance");
+module_load_include('php', 'cpsc471prj', 'includes/instances/BoatItemRate');
+module_load_include('php', 'cpsc471prj', 'includes/instances/Season');
+module_load_include('php', 'cpsc471prj', 'includes/instances/CottagePriceGuide');
+module_load_include('php', 'cpsc471prj', 'includes/instances/PricedFor');
 
 class RentalItem extends DBTableInstance{
 	
@@ -23,7 +27,6 @@ class RentalItem extends DBTableInstance{
 		$this->tableName = DBConf::$rentableItem;
 		parent::__construct($type, $data);
 	}
-	
 	
 }
 

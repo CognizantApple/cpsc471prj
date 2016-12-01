@@ -120,6 +120,10 @@ function cpsc471prj_schema() {
 	$schema['rental'] = array(
 		'description' => 'Information of a rental ',
 		'fields' => array(
+			'rental_id' => array(
+				'type' => 'serial',
+				'not null' => true,
+			),
 			'start_time' => array(
 				'type' => 'int',
 				'not null' => true,
@@ -143,6 +147,7 @@ function cpsc471prj_schema() {
 				'type' => 'int',
 				'size' => 'tiny',
 				'not null' => true,
+				'default' => 0,
 			),
 			'rental_type' => array(
 				'type' => 'varchar',
@@ -157,7 +162,7 @@ function cpsc471prj_schema() {
 				'default' => 0,
 			),
 		),
-		'primary key' => array('start_time', 'renters_uid'),
+		'primary key' => array('rental_id'),
 	);
 	
 	$schema['rental_renters'] = array(
@@ -171,7 +176,7 @@ function cpsc471prj_schema() {
 				'type' => 'int',
 				'not null' => true,
 			),
-			'rental_start_time' => array(
+			'rental_id' => array(
 				'type' => 'int',
 				'not null' => true,
 			),
@@ -181,7 +186,7 @@ function cpsc471prj_schema() {
 			),
 			
 		),
-		'primary key' => array('renter_id', 'account_uid', 'rental_start_time', 'renters_uid'),
+		'primary key' => array('renter_id', 'account_uid', 'rental_id', 'renters_uid'),
 	);
 	
 	$schema['renters_car'] = array(
@@ -192,7 +197,7 @@ function cpsc471prj_schema() {
 				'length' => 20,
 				'not null' => true,
 			),
-			'start_time' => array(
+			'rental_id' => array(
 				'type' => 'int',
 				'not null' => true,
 			),
@@ -212,7 +217,7 @@ function cpsc471prj_schema() {
 			),
 		
 		),
-		'primary key' => array('liscence_plate', 'start_time', 'renter_uid'),
+		'primary key' => array('liscence_plate', 'rental_id', 'renter_uid'),
 	);
 	
 	$schema['rented'] = array(
@@ -222,7 +227,7 @@ function cpsc471prj_schema() {
 							'type' => 'int',
 							'not null' => true,
 					),
-					'rental_start_time' => array(
+					'rental_id' => array(
 							'type' => 'int',
 							'not null' => true,
 					),
@@ -231,7 +236,7 @@ function cpsc471prj_schema() {
 							'not null' => true
 					),
 			),
-			'primary key' => array('rentable_item_id', 'rental_start_time', 'uid')
+			'primary key' => array('rentable_item_id', 'rental_id', 'uid')
 	
 	);
 	
