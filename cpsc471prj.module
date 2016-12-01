@@ -337,6 +337,7 @@ function cpsc471_access() {
  * 
  */
 function home_form($form, &$form_state) {
+	
 	$user = new User();
 	$user->setRole('Manager', true);
 	//$user->setRole('Manager', false);
@@ -1476,7 +1477,7 @@ function renter_create_boat_rental_form_submit($form, &$form_state) {
 			'renters_uid' => $u->getProperty('uid'),
 			'duration' => $duration, //hours
 			'estimated_arrival_time' => $start_time,
-			'returning' => Rental::isReturningRental($start_time, $u->getProperty('uid')) ? 1 : 0,
+			'returning' => Rental::isReturningRental($u->getProperty('uid')) ? 1 : 0,
 			'rental_type' => 'BoatItem',
 	));
 	xdebug_break();
