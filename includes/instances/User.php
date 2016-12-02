@@ -45,6 +45,7 @@ class User extends DBTableInstance {
 		
 		user_save('', $newUserForDrupal);
 		$this->pass_p = null; //it will have been hashed
+		$this->uid_p = null;
 		$this->getFromDB();//reload self
 	}
 	
