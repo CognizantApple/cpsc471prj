@@ -88,7 +88,7 @@ class Validator {
 		//fetch all other rentals on the provided cottage
 		// note: modified by Andy on nov 28
 		$rows = db_query('select r.start_time, r.duration from rented as d, rental as r where 
-				d.rentable_item_id = ? and d.uid = r.renters_uid and d.rental_id = r.rental_id', array(
+				d.rentable_item_id = ? and d.uid = r.renters_uid and d.rental_id = r.rental_id and r.has_been_confirmed = 1', array(
 					$cottageID,
 				));
 		
@@ -146,7 +146,7 @@ class Validator {
 		$duration *= 3600;
 		
 		$rows = db_query('select r.start_time, r.duration from rented as d, rental as r where
-				d.rentable_item_id = ? and d.uid = r.renters_uid and d.rental_id = r.rental_id', array(
+				d.rentable_item_id = ? and d.uid = r.renters_uid and d.rental_id = r.rental_id and r.has_been_confirmed = 1', array(
 								$itemID,
 						));
 		
@@ -201,7 +201,7 @@ class Validator {
 	 * 		The number of seconds into the day if the format matches, or false if the format is invalid
 	 */
 	public static function isHHMM($str) {
-		if(preg_match('/(1[012]|0[0-9]):([0-5][0-9])/', $str)) {
+		if(preg_match('/([012][0-9]):([0-5][0-9])/', $str)) {
 			$parts = explode(':', $str);
 			
 			$hours = intval($parts[0]);

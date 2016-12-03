@@ -273,6 +273,18 @@ class Rental extends DBTableInstance {
 			return 9999;
 		}
 	}
+	
+	public function deleteFromDB() {
+		$this->getFromDB();
+		
+		if($this->rental_id_p != null) {
+			db_query('delete from rental where rental_id = ? and renters_uid = ?', array($this->rental_id_p, $this->renters_uid_p));
+			
+			db_query('delete from rental_renters where rental_id = ? and account_uid = ?',  array($this->rental_id_p, $this->renters_uid_p));
+			
+			db_query('delete from rented where rental_id = ? and uid = ?', array($this->rental_id_p, $this->renters_uid_p));
+		}
+	}
 }
 
 
