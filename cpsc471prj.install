@@ -477,7 +477,7 @@ function cpsc471prj_schema() {
 
 
 function populate_Database_With_Example_Data() {
-	
+	//delete the users we plan to create, the uninstall hook wont erase users
 	db_query("DELETE FROM `users` WHERE `users`.`name` = 'xXJohnSlayerXx'");
 	db_query("DELETE FROM `users` WHERE `users`.`name` = 'xXTheRustlerXx'");
 	db_query("DELETE FROM `users` WHERE `users`.`name` = 'xXTheWalDoXx'");
@@ -537,6 +537,7 @@ function populate_Database_With_Example_Data() {
 	$johnUser->setProperty("mail", "yotothat@tothatyo.yo");
 	$johnUser->setProperty("pass", "password");
 	$johnUser->create();
+	$johnUser->setRole('Renter');
 	
 	$johnRenter = new Renter();
 	$johnRenter->setProperty("account_uid", $johnUser->getProperty("uid"));
@@ -569,13 +570,17 @@ function populate_Database_With_Example_Data() {
 	$johnCottageRental = new Rental();
 	$johnCottageRental->setProperty("start_time", strtotime("july 10 2017"));
 	$johnCottageRental->setProperty("renters_uid", $johnUser->getProperty("uid"));
-	$johnCottageRental->setProperty("duration", strtotime("july 12 2017") - strtotime("july 10 2017"));
+	$johnCottageRental->setProperty("duration", (strtotime("july 12 2017") - strtotime("july 10 2017")) / 3600);
 	$johnCottageRental->setProperty("actual_arrival_time", null);
 	$johnCottageRental->setProperty("estimated_arrival_time", strtotime("july 12 2017"));
 	$johnCottageRental->setProperty("returning", "0");
 	$johnCottageRental->setProperty("rental_type", "Cottage");
 	$johnCottageRental->setProperty("has_been_confirmed", "1");
 	$johnCottageRental->create();
+	$johnCottageRental->linkItem($theOnlyDamnCottage->getProperty('id'));
+	$johnCottageRental->linkRenter($johnRenter->getProperty('id'));
+	$johnCottageRental->linkRenter($littleSusan->getProperty('id'));
+	$johnCottageRental->linkRenter($littleTimothy->getProperty('id'));
 	
 	
 	
@@ -584,6 +589,7 @@ function populate_Database_With_Example_Data() {
 	$jimmyUser->setProperty("mail", "giraffe@effarig.savhanna");
 	$jimmyUser->setProperty("pass", "password");
 	$jimmyUser->create();
+	$jimmyUser->setRole('Renter');
 	
 	$jimmyRenter = new Renter();
 	$jimmyRenter->setProperty("account_uid", $jimmyUser->getProperty("uid"));
@@ -616,14 +622,16 @@ function populate_Database_With_Example_Data() {
 	$jimmyBoatRental = new Rental();
 	$jimmyBoatRental->setProperty("start_time", strtotime("july 15 2017"));
 	$jimmyBoatRental->setProperty("renters_uid", $jimmyUser->getProperty("uid"));
-	$jimmyBoatRental->setProperty("duration", strtotime("july 17 2017") - strtotime("july 15 2017"));
+	$jimmyBoatRental->setProperty("duration", (strtotime("july 17 2017") - strtotime("july 15 2017")) / 3600);
 	$jimmyBoatRental->setProperty("actual_arrival_time", null);
 	$jimmyBoatRental->setProperty("estimated_arrival_time", strtotime("july 15 2017"));
 	$jimmyBoatRental->setProperty("returning", "0");
-	$jimmyBoatRental->setProperty("rental_type", "Boat");
+	$jimmyBoatRental->setProperty("rental_type", "BoatItem");
 	$jimmyBoatRental->setProperty("has_been_confirmed", "1");
 	$jimmyBoatRental->create();
-	
+	$jimmyBoatRental->linkItem($theOnlyDamnBoat->getProperty('id'));
+	$jimmyBoatRental->linkRenter($jimmyRenter->getProperty('id'));
+	$jimmyBoatRental->linkRenter($littleBilly->getProperty('id'));
 	
 	
 	$waldoUser = new User();
@@ -631,6 +639,7 @@ function populate_Database_With_Example_Data() {
 	$waldoUser->setProperty("mail", "findmenow@hideandseek.whereami");
 	$waldoUser->setProperty("pass", "password");
 	$waldoUser->create();
+	$waldoUser->setRole('Renter');
 	
 	$waldoRenter = new Renter();
 	$waldoRenter->setProperty("account_uid", $waldoUser->getProperty("uid"));
@@ -656,23 +665,28 @@ function populate_Database_With_Example_Data() {
 	$waldoCottageRental = new Rental();
 	$waldoCottageRental->setProperty("start_time", strtotime("july 18 2017"));
 	$waldoCottageRental->setProperty("renters_uid", $waldoUser->getProperty("uid"));
-	$waldoCottageRental->setProperty("duration", strtotime("july 20 2017") - strtotime("july 18 2017"));
+	$waldoCottageRental->setProperty("duration", (strtotime("july 20 2017") - strtotime("july 18 2017")) / 3600);
 	$waldoCottageRental->setProperty("actual_arrival_time", null);
 	$waldoCottageRental->setProperty("estimated_arrival_time", strtotime("july 18 2017"));
 	$waldoCottageRental->setProperty("returning", "0");
 	$waldoCottageRental->setProperty("rental_type", "Cottage");
 	$waldoCottageRental->setProperty("has_been_confirmed", "1");
 	$waldoCottageRental->create();
+	$waldoCottageRental->linkItem($theOnlyDamnCottage->getProperty('id'));
+	$waldoCottageRental->linkRenter($waldoRenter->getProperty('id'));
+	$waldoCottageRental->linkRenter($littleWaldo->getProperty('id'));
 	
 	$waldoBoatRental = new Rental();
 	$waldoBoatRental->setProperty("start_time", strtotime("july 18 2017"));
 	$waldoBoatRental->setProperty("renters_uid", $waldoUser->getProperty("uid"));
-	$waldoBoatRental->setProperty("duration", strtotime("july 20 2017") - strtotime("july 18 2017"));
+	$waldoBoatRental->setProperty("duration", (strtotime("july 20 2017") - strtotime("july 18 2017")) / 3600);
 	$waldoBoatRental->setProperty("actual_arrival_time", null);
 	$waldoBoatRental->setProperty("estimated_arrival_time", strtotime("july 18 2017"));
 	$waldoBoatRental->setProperty("returning", "0");
-	$waldoBoatRental->setProperty("rental_type", "Boat");
-	$waldoBoatRental->setProperty("has_been_confirmed", "1");
+	$waldoBoatRental->setProperty("rental_type", "BoatItem");
+	$waldoBoatRental->setProperty("has_been_confirmed", "0");
 	$waldoBoatRental->create();
+	$waldoBoatRental->linkItem($theOnlyDamnBoat->getProperty('id'));
+	$waldoBoatRental->linkRenter($waldoRenter->getProperty('id'));
 	
 }

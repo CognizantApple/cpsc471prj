@@ -353,15 +353,14 @@ function cpsc471_access() {
 function home_form($form, &$form_state) {
 	
 	$user = new User();
-	$user->setRole('Manager', true);
 	//$user->setRole('Manager', false);
 	if($user->loggedIn()) {
-		if($user->hasRole('Renter')) {
-			drupal_goto('scc/renter');
-		}
 		
 		if($user->hasRole('Manager')) {
 			drupal_goto('scc/manager');
+		} else {
+			$user->setRole('Renter');
+			drupal_goto('scc/renter');
 		}
 	}
 	
@@ -1767,22 +1766,26 @@ function renter_create_rental_form_submit($form, &$form_state) {
  * Shows a form where renters can view both their boat and cottage rentals in one place
  */
 function renter_view_rentals_form($form, &$form_state) {
+	$format = 'F j, Y';
+	
 	$u = new User();
 	
 	//get the cottage rentals
 	$rentals = Rental::instanceLoadMultiple(array(
 		'renters_uid' => $u->getProperty('uid'),
+		'rental_type' => 'Cottage',
 	));
-	
-	
 	
 	
 	//create the table options
 	$options = array();
+	$defaults = array();
+	$disabled = array();
 	
-	
-	foreach($rentals as $rentalID => $rental) {
+	foreach($rentals as $rental) {
+		
 		$rental->loadRentedItems();
+		$rentalID = $rental->getProperty('rental_id');
 		
 		$items = $rental->getProperty('rentedItems');
 
@@ -1792,6 +1795,15 @@ function renter_view_rentals_form($form, &$form_state) {
 			'duration' => '',
 			'price' => ''
 		);
+		
+		$defaults[$rentalID] = $rental->getProperty('has_been_confirmed');
+		
+		if($defaults[$rentalID]) {
+			$disabled[] = $rentalID;
+		} else {
+			//$disabled[$rentalID] = false;
+		}
+		
 		foreach($items as $itemID => $item) {
 			if($options[$rentalID]['cottageNumber'] != '') {
 				$options[$rentalID]['cottageNumber'] .= '<br>';
@@ -1804,17 +1816,20 @@ function renter_view_rentals_form($form, &$form_state) {
 			$cottageNumber = $item->getProperty('number');
 			$startDate = $rental->getProperty('start_time');
 			$duration = $rental->getProperty('duration') / 24;
-			$price = 'TODO';
+			$price = '$' . $rental->getPrice();
 			
 			$options[$rentalID]['cottageNumber'] .= $cottageNumber;
-			$options[$rentalID]['start_date'] .= $startDate;
-			$options[$rentalID]['duration'] .= $duration;
+			$options[$rentalID]['start_date'] .= date($format, $startDate);
+			$options[$rentalID]['duration'] .= $duration . ' days';
 			$options[$rentalID]['price'] .= $price;
+			
+			
 		}
 	}
 	
 	$form['rental_table'] = array (
 		'#type' => 'tableselect',
+		'#prefix' => '<label>Cottage Rentals</label>',
 		'#header' => array (
 			'cottageNumber'	=> 'Cottage Number',
 			'start_date' => 'Start Date',
@@ -1822,10 +1837,165 @@ function renter_view_rentals_form($form, &$form_state) {
 			'price' => 'Price'
 		),
 		'#options' => $options,
+		'#default_value' => $defaults,
+		'#disabled' => $disabled,
+		'#empty' => 'You don\'t have any Cottage Rentals',
+	);
+	
+	
+	//now repeat for boat rentals
+	
+	//get the boat rentals
+	$rentals = Rental::instanceLoadMultiple(array(
+		'renters_uid' => $u->getProperty('uid'),
+		'rental_type' => 'BoatItem',
+	));
+	
+	
+	//create the table options
+	$options = array();
+	$defaults = array();
+	$disabled = array();
+	
+	foreach($rentals as $rental) {
+	
+		$rental->loadRentedItems();
+		$rentalID = $rental->getProperty('rental_id');
+	
+		$items = $rental->getProperty('rentedItems');
+	
+		$options[$rentalID] = array (
+			'boatName'	=> '',
+			'start_date' => '',
+			'duration' => '',
+			'price' => ''
+		);
+	
+		$defaults[$rentalID] = $rental->getProperty('has_been_confirmed');
+	
+		if($defaults[$rentalID]) {
+			$disabled[] = $rentalID;
+		} 
+	
+		foreach($items as $itemID => $item) {
+			if($options[$rentalID]['boatName'] != '') {
+				$options[$rentalID]['boatName'] .= '<br>';
+				$options[$rentalID]['start_date'] .= '<br>';
+				$options[$rentalID]['duration'] .= '<br>';
+				$options[$rentalID]['price'] .= '<br>';
+			}
+				
+				
+			$cottageNumber = $item->getProperty('name');
+			$startDate = $rental->getProperty('start_time');
+			$duration = $rental->getProperty('duration');
+			$price = '$' . $rental->getPrice();
+				
+			$options[$rentalID]['boatName'] .= $cottageNumber;
+			$options[$rentalID]['start_date'] .= date($format, $startDate);
+			$options[$rentalID]['duration'] .= $duration . ' hours';
+			$options[$rentalID]['price'] .= $price;
+				
+				
+		}
+	}
+	
+	$form['boat_rental_table'] = array (
+		'#type' => 'tableselect',
+		'#prefix' => '<label>Boat Rentals</label>',
+		'#header' => array (
+			'boatName'	=> 'Boat Name',
+			'start_date' => 'Start Date',
+			'duration' => 'Duration',
+			'price' => 'Price'
+		),
+		'#options' => $options,
+		'#default_value' => $defaults,
+		'#disabled' => $disabled,
+		'#empty' => 'You don\'t have any Boat Rentals',
+	);
+	
+	
+	
+	$form['submit'] = array (
+		'#type' => 'submit',
+		'#value' => 'Confirm Selected Rentals',
+		'#submit' => array('renter_view_rentals_submit'),
 	);
 	
 	return $form;
 	
+}
+
+/**
+ * Flags the requested rentals as validated
+ */
+function renter_view_rentals_submit($form, &$form_state) {
+	foreach($form_state['values']['rental_table'] as $rentalID => $shouldConfirm) {
+		if($shouldConfirm) {
+			$r = new Rental('standard', array(
+				'rental_id' => $rentalID,
+			));
+				
+			$r->loadRentedItems();
+				
+			$items = $r->getProperty('rentedItems');
+				
+			foreach($items as $item) {
+				
+					
+				if($r->getProperty('has_been_confirmed') == 0) {
+					
+					if(!Validator::isCottageAvailable($item->getProperty('id'), $r->getProperty('start_time'), $r->getProperty('duration'))) {
+						drupal_set_message('One of the rentals you have selected is no longer valid, someone else has beaten you to the punch, the rental has been deleted.', 'error');
+						$r->deleteFromDB();
+					} else {
+					
+						$r->updateInDB(array('has_been_confirmed' => 1));
+						drupal_set_message('Rental Confirmed');
+					}
+				}
+					
+				//(else already confirmed)
+			}
+				
+				
+		}
+	}
+	
+	foreach($form_state['values']['boat_rental_table'] as $rentalID => $shouldConfirm) {
+		if($shouldConfirm) {
+			$r = new Rental('standard', array(
+				'rental_id' => $rentalID,
+			));
+	
+			$r->loadRentedItems();
+	
+			$items = $r->getProperty('rentedItems');
+	
+			foreach($items as $item) {
+				
+						
+				if($r->getProperty('has_been_confirmed') == 0) {
+					
+					if(!Validator::isBoatItemAvailable($item->getProperty('id'), $r->getProperty('start_time'), $r->getProperty('duration'))) {
+						drupal_set_message('One of the rentals you have selected is no longer valid, someone else has beaten you to the punch, the rental has been deleted.', 'error');
+						$r->deleteFromDB();
+					} else {		
+						$r->updateInDB(array('has_been_confirmed' => 1));
+						drupal_set_message('Rental Confirmed');
+					}
+				}
+						
+				//(else already confirmed)
+						
+						
+						
+			}
+	
+	
+		}
+	}
 }
 
 ////////////////////////////
