@@ -18,8 +18,14 @@ class User extends DBTableInstance {
 	/**
 	 * Does nothing
 	 */
-	public function __construct() {
+	public function __construct($type = 'current', $data = array()) {
 		$this->tableName = 'users';
+		
+		if($type == 'standard') {
+			parent::__construct('standard', $data);
+			return;
+		}
+		
 		
 		if(user_is_logged_in()) {
 			global $user;

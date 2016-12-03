@@ -1248,13 +1248,7 @@ function manager_view_rentals_form($form, &$form_state) {
 }
 
 function helper_add_cottage_table(&$form, &$form_state) {
-	//grab the cottage rentals
-	$rentals = Rental::instanceLoadMultiple(array(
-		'rental_type' => 'Cottage',
-	));
-	
-	
-	
+		
 	$form['search_fieldset'] = array (
 		'#type' => 'fieldset',
 		'#title' => 'Cottage Rental Search Options',
@@ -1270,7 +1264,7 @@ function helper_add_cottage_table(&$form, &$form_state) {
 		'#type' => 'radios',
 		'#title' => 'Sort Options',
 		'#options' => array (
-			'number' => 'Sort By Cottage Number',
+			'name' => 'Sort By Contact Name',
 			'date' => 'Sort By Start Date',
 		),
 		'#default_value' => 'date',
@@ -1283,12 +1277,26 @@ function helper_add_cottage_table(&$form, &$form_state) {
 			'wrapper' => 'cottage_table',
 			'callback' => 'cottage_callback',
 		),
+		'#name' => 'cottage_search',
 	);
 	
 	$form['cottage_set'] = array (
 		'#prefix' => '<div id="cottage_table">',
 		'#suffix' => '</div>'
 	);
+	
+	//grab the cottage rentals
+	$rentals = Rental::instanceLoadMultiple(array(
+		'rental_type' => 'Cottage',
+	));
+	
+	$search_string = isset($form_state['values']['cottage_search_bar']) ? $form_state['values']['cottage_search_bar'] : '';
+	$sort_type = isset($form_state['values']['sort_type']) ? $form_state['values']['sort_type'] : 'date';
+		
+	apply_cottage_search($rentals, $search_string, $sort_type);
+	
+	
+	$options = buildCottageOptions($rentals);
 	
 	$form['cottage_set']['cottage_table'] = array (
 		'#type' =>'tableselect',
@@ -1297,15 +1305,186 @@ function helper_add_cottage_table(&$form, &$form_state) {
 			'start_date' => 'Start Date',
 			'duration' => 'End Date',
 			'estimated_arrival_time' => 'Estimated Arrival Time',
+			'actual_arrival_time' => 'Actual Arrival Time',
 			'primary_contact_name' => 'Primary Contact Name',
 			'primary_contact_email' => 'Primary Contact Email',
 			'primary_contact_cc' => 'Primary Contact Credit Card',
 			'primary_contact_phone' => 'Primary Contact Phone Number',
+			'price' => 'Price',
 		),
-		'#options' => array(),
+		'#options' => $options,
 		'#empty' => 'No Cottage Rentals Added'
 	);
 	
+	if(isset($form_state['triggering_element'])) {
+		if($form_state['triggering_element']['#name'] == 'cottage_search') {
+			drupal_set_message('Search Applied');
+		}
+		
+		$form['cottage_set']['cottage_table']['#empty'] = 'No results matched the search';
+	}
+}
+
+/**
+ * Builds the options array for the tableselect on the manager view rentals forms
+ * @param Rental[] $rentals
+ */
+function buildCottageOptions($rentals) {
+	$format = 'F j, Y';
+	$formatTime = 'F j, Y G:i';
+	
+	$options = array();
+	
+	foreach($rentals as $rental) {
+		$row = array();
+		
+		$row['cottage_number'] = '';
+
+		
+		$rental->loadRentedItems();
+		$items = $rental->getProperty('rentedItems');
+		
+		foreach($items as $item) {
+			if($row['cottage_number'] != '') {
+				$row['cottage_number'] .= '<br>';
+			}
+			
+			$row['cottage_number'] .= $item->getProperty('number');
+		}
+		
+		$row['start_date'] = date($format, $rental->getProperty('start_time'));
+		$row['duration'] = $rental->getProperty('duration') / 24;
+		$row['estimated_arrival_time'] = date($formatTime, $rental->getProperty('estimated_arrival_time'));
+		$row['actual_arrival_time'] = $rental->getProperty('actual_arrival_time') != null ? $rental->getProperty('actual_arrival_time') : 'Not Checked In Yet';
+		
+		$rental->loadRentalAccount();
+		
+		$account = $rental->getProperty('rentalAccount');
+		
+		$renter = new Renter('standard', array(
+			'id' => $account->getProperty('primary_renter_id'),
+			'account_uid' => $account->getProperty('uid'),
+		));
+		
+		$row['primary_contact_name'] = $renter->getProperty('name');
+		
+		$u = new User('standard', array(
+			'uid' => $account->getProperty('uid'),
+		));
+		
+		$row['primary_contact_email'] = $u->getProperty('mail');
+		$row['primary_contact_cc'] = $account->getProperty('credit_card');
+		$row['primary_contact_phone'] = $account->getProperty('phone');
+		
+		$row['price'] = '$' . $rental->getPrice();
+		
+		$rentalID = $rental->getProperty('rental_id');
+		$options[$rentalID] = $row;
+		
+	}
+	
+	
+	
+	
+	return $options;
+}
+
+/**
+ * 
+ * @param Rental[] $rentals
+ * @param string $search_string
+ * @param string $sort_type
+ */
+function apply_cottage_search(&$rentals, $search_string, $sort_type) {
+	$search_string = '*' . preg_quote($search_string) . '*';
+	
+	
+	foreach($rentals as $i => $rental) {
+		if(!cottage_search_match($rental, $search_string)) {
+			unset($rentals[$i]);
+		}
+	}
+	
+	/**
+	 * Apply the sort types, these use anonymous functions
+	 * to apply the sort (kind of like function pointers)
+	 */
+	if($sort_type == 'date') {
+		usort($rentals, function($left, $right){
+			$lDate = $left->getProperty('start_time');
+			$rDate = $right->getProperty('start_time');
+			
+			if($lDate < $rDate) {
+				return 1;
+			} else if($lDate == $rDate) {
+				return 0;
+			} else {
+				return -1;
+			}
+		});
+	} else { //else sort by client name
+		usort($rentals, function($left, $right){
+			$left->loadRentalAccount();
+			$right->loadRentalAccount();
+			
+			$laccount = $left->getProperty('rentalAccount');
+			$raccount = $right->getProperty('rentalAccount');
+			
+			$lrenter = new Renter('standard', array(
+				'id' => $laccount->getProperty('primary_renter_id'),
+				'account_uid' => $laccount->getProperty('uid'),
+			));
+			
+			$rrenter = new Renter('standard', array(
+				'id' => $raccount->getProperty('primary_renter_id'),
+				'account_uid' => $raccount->getProperty('uid'),
+			));
+			
+			$rname = $rrenter->getProperty('name');
+			
+			return  strcmp($lname, $rname);
+		});
+	}
+}
+
+/**
+ * 
+ * @param Rental $rental
+ * @param string $search_string
+ * 
+ * @return bool
+ * 		true if the search string matches the provided rental, false otherwise
+ */
+function cottage_search_match($rental, $search_string) {
+	$rental->loadRentedItems();
+	
+	$items = $rental->getProperty('rentedItems');
+	
+	foreach($items as $item) {
+		$number =  $item->getProperty('number');
+		
+		if(preg_match($search_string, $number) == 1) {
+			return true;
+		}
+		
+	}
+	
+	$rental->loadRentalAccount();
+	
+	$account = $rental->getProperty('rentalAccount');
+	
+	$renter = new Renter('standard', array(
+		'id' => $account->getProperty('primary_renter_id'),
+		'account_uid' => $account->getProperty('uid'),
+	));
+	
+	$name = $renter->getProperty('name');
+	
+	if(preg_match($search_string, $name) == 1) {
+		return true;
+	}
+	
+	return false;
 }
 
 function cottage_callback($form, $form_state) {
