@@ -315,7 +315,7 @@ function cpsc471prj_menu(){
 	);
 	
 	$items['scc/manager/viewrentals'] = array (
-		'title' => 'View Confirmed Rentals / Checking Rentals',
+		'title' => 'View Confirmed Rentals / Check in Rentals',
 		'description' => 'View Rentals',
 		'page callback' => 'drupal_get_form',
 		'page arguments' => array (
@@ -665,6 +665,61 @@ function manager_select_cottage_price_season($form, &$form_state){
 			'#title' => 'Cottage number',
 			'#options' => $cottageOptions,
 	);
+	
+	// create the table hearder
+	$header = array (
+		'guidename' => array (
+			'data' => 'Guide Name'
+		),
+		'seasonname' => array (
+			'data' => 'Season Name',
+		),
+		'cottagenumber'=> array (
+			'data' => 'Cottage Number',
+		),
+	);
+	
+	$pricedFors = PricedFor::instanceLoadMultiple();
+	
+	//iterate over each cottage and create a table row
+	$rows = array();
+	
+	foreach($pricedFors as $pricedFor) {
+		$row = array('data' => array());
+		
+		$cottageID = $pricedFor->getProperty('cottage_id');
+		$seasonStartTime = $pricedFor->getProperty('season_start_time');
+		$costGuideID = $pricedFor->getProperty('cost_guide_id');
+		
+		
+		$cottage = new Cottage('standard', array(
+			'id' => $cottageID,
+		));
+		
+		$season = new Season('standard', array(
+			'start_time' => $seasonStartTime,
+		));
+		
+		$guide = new CottagePriceGuide('standard', array(
+			'id' => $cottageID,
+		));
+		
+		
+		$row['data']['guidename'] = $guide->getProperty('name');	
+		$row['data']['seasonname'] = $season->getProperty('name');
+		$row['data']['cottagenumber'] = $cottage->getProperty('number');
+		$rows[] = $row;
+	}
+	
+	$form['season_table'] = array (
+		'#theme' => 'table',
+		'#header' => $header,
+		'#rows' => $rows,
+		'#empty' => 'No price guides have been associated with cottages',
+		'#prefix' => '<label>Currently Associated Price Guides</label>'
+	);
+	
+	
 	
 	$form['submit'] = array (
 			'#type' => 'submit',
@@ -1466,7 +1521,7 @@ function buildCottageOptions($rentals) {
  * @param string $sort_type
  */
 function apply_cottage_search(&$rentals, $search_string, $sort_type) {
-	$search_string = '*' . preg_quote($search_string) . '*';
+	$search_string = '*' . preg_quote(strtolower($search_string)) . '*';
 	
 	
 	foreach($rentals as $i => $rental) {
@@ -1548,7 +1603,7 @@ function cottage_search_match($rental, $search_string) {
 		'account_uid' => $account->getProperty('uid'),
 	));
 	
-	$name = $renter->getProperty('name');
+	$name = strtolower($renter->getProperty('name'));
 	
 	if(preg_match($search_string, $name) == 1) {
 		return true;
@@ -1686,7 +1741,7 @@ function buildBoatOptions($rentals) {
 		}
 
 		$row['start_date'] = date($format, $rental->getProperty('start_time'));
-		$row['duration'] = ($rental->getProperty('duration') / 24) . ' days';
+		$row['duration'] = ($rental->getProperty('duration')) . ' hours';
 		$row['estimated_arrival_time'] = date($formatTime, $rental->getProperty('estimated_arrival_time'));
 		$row['actual_arrival_time'] = $rental->getProperty('actual_arrival_time') != null ? date($formatTime, $rental->getProperty('actual_arrival_time')) : 'Not Checked In Yet';
 
@@ -1721,7 +1776,7 @@ function buildBoatOptions($rentals) {
 }
 
 function apply_boat_search(&$rentals, $search_string, $sort_type) {
-	$search_string = '*' . preg_quote($search_string) . '*';
+	$search_string = '*' . preg_quote(strtolower($search_string)) . '*';
 
 
 	foreach($rentals as $i => $rental) {
@@ -1795,7 +1850,7 @@ function boat_search_match($rental, $search_string) {
 		'account_uid' => $account->getProperty('uid'),
 	));
 	
-	$name = $renter->getProperty('name');
+	$name = strtolower($renter->getProperty('name'));
 	
 	if(preg_match($search_string, $name) == 1) {
 		return true;
