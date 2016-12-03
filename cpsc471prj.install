@@ -497,6 +497,11 @@ function populate_Database_With_Example_Data() {
 	$theOnlyDamnBoat->setProperty("capacity", "10");
 	$theOnlyDamnBoat->create();
 	
+	$sooperdoopertoob = new BoatItem();
+	$sooperdoopertoob->setProperty("type", "tube");
+	$sooperdoopertoob->setProperty("name", "tooobular");
+	$sooperdoopertoob->setProperty("capacity", "5");
+	
 	$cottagesPriceGuide = new CottagePriceGuide();
 	$cottagesPriceGuide->setProperty("name", "averagePriceGuide");
 	$cottagesPriceGuide->setProperty("two_day", "300");
