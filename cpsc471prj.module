@@ -1242,6 +1242,10 @@ function manager_new_cottage_form_submit($form, &$form_state) {
 }
 
 function manager_view_rentals_form($form, &$form_state) {
+	$form['vtab'] = array (
+		'#type' => 'vertical_tabs',
+	);
+	
 	helper_add_cottage_table($form, $form_state);
 	helper_add_boat_table($form, $form_state);
 	
@@ -1268,27 +1272,52 @@ function manager_view_rentals_submit($form, &$form_state) {
 				$rental->updateInDB(array(
 					'actual_arrival_time' => $currentTimestamp,
 				));
+				drupal_set_message('Check in processed', 'status', false);
 			}
 					
 		}
 	}
 	
+	
+	foreach($form_state['values']['boat_table'] as $rentalID => $shouldCheckIn) {
+		if($shouldCheckIn) {
+			$rental = new Rental('standard', array(
+				'rental_id' => $rentalID,
+			));
+				
+			if($rental->getProperty('actual_arrival_time') == null) {
+				$rental->updateInDB(array(
+					'actual_arrival_time' => $currentTimestamp,
+				));
+				
+				drupal_set_message('Check in processed', 'status', false);
+			}
+				
+		}
+	}
 }
 
 function helper_add_cottage_table(&$form, &$form_state) {
 		
-	$form['search_fieldset'] = array (
+	$form['cottage'] = array (
+		'#type' => 'fieldset',
+		'#title' => 'View Cottage Rentals',
+		'#group' => 'vtab',
+	);
+	
+	$form['cottage']['search_fieldset'] = array (
 		'#type' => 'fieldset',
 		'#title' => 'Cottage Rental Search Options',
 		'#collapsible' => true,
+		'#collapsed' => true,
 	);
 	
-	$form['search_fieldset']['cottage_search_bar'] = array (
+	$form['cottage']['search_fieldset']['cottage_search_bar'] = array (
 		'#type' => 'textfield',
 		'#title' => 'Search by Cottage Number or Client Name',
 	);
 	
-	$form['search_fieldset']['sort_type'] = array (
+	$form['cottage']['search_fieldset']['sort_type'] = array (
 		'#type' => 'radios',
 		'#title' => 'Sort Options',
 		'#options' => array (
@@ -1298,7 +1327,7 @@ function helper_add_cottage_table(&$form, &$form_state) {
 		'#default_value' => 'date',
 	);
 	
-	$form['search_fieldset']['apply_cottage_search'] = array (
+	$form['cottage']['search_fieldset']['apply_cottage_search'] = array (
 		'#type' => 'button',
 		'#value' => 'Search',
 		'#ajax' => array (
@@ -1308,7 +1337,7 @@ function helper_add_cottage_table(&$form, &$form_state) {
 		'#name' => 'cottage_search',
 	);
 	
-	$form['cottage_set'] = array (
+	$form['cottage']['cottage_set'] = array (
 		'#prefix' => '<div id="cottage_table">',
 		'#suffix' => '</div>'
 	);
@@ -1327,7 +1356,7 @@ function helper_add_cottage_table(&$form, &$form_state) {
 	$header = array (
 		'cottage_number' => 'Cottage Number',
 		'start_date' => 'Start Date',
-		'duration' => 'End Date',
+		'duration' => 'Duration',
 		'estimated_arrival_time' => 'Estimated Arrival Time',
 		'actual_arrival_time' => 'Actual Arrival Time',
 		'primary_contact_name' => 'Primary Contact Name',
@@ -1348,7 +1377,7 @@ function helper_add_cottage_table(&$form, &$form_state) {
 		}
 	}
 	
-	$form['cottage_set']['cottage_table'] = array (
+	$form['cottage']['cottage_set']['cottage_table'] = array (
 		'#type' =>'tableselect',
 		'#header' => $header,
 		'#options' => $options,
@@ -1362,7 +1391,7 @@ function helper_add_cottage_table(&$form, &$form_state) {
 			drupal_set_message('Search Applied');
 		}
 		
-		$form['cottage_set']['cottage_table']['#empty'] = 'No results matched the search';
+		$form['cottage']['cottage_set']['cottage_table']['#empty'] = 'No results matched the search';
 	}
 }
 
@@ -1394,7 +1423,7 @@ function buildCottageOptions($rentals) {
 		}
 		
 		$row['start_date'] = date($format, $rental->getProperty('start_time'));
-		$row['duration'] = $rental->getProperty('duration') / 24;
+		$row['duration'] = ($rental->getProperty('duration') / 24) . ' days';
 		$row['estimated_arrival_time'] = date($formatTime, $rental->getProperty('estimated_arrival_time'));
 		$row['actual_arrival_time'] = $rental->getProperty('actual_arrival_time') != null ? date($formatTime, $rental->getProperty('actual_arrival_time')) : 'Not Checked In Yet';
 		
@@ -1529,12 +1558,252 @@ function cottage_search_match($rental, $search_string) {
 }
 
 function cottage_callback($form, $form_state) {
-	return $form['cottage_set'];
+	return $form['cottage']['cottage_set'];
+}
+
+function boat_callback($form, $form_state) {
+	return $form['boat']['boat_set'];
 }
 
 function helper_add_boat_table(&$form, &$form_state) {
+	$form['boat'] = array (
+		'#type' => 'fieldset',
+		'#title' => 'View Boat Rentals',
+		'#group'=> 'vtab',
+	);
 	
+	$form['boat']['boat_search_fieldset'] = array (
+		'#type' => 'fieldset',
+		'#title' => 'Boat Rental Search Options',
+		'#collapsible' => true,
+		'#collapsed' => true,
+	);
+	
+	$form['boat']['boat_search_fieldset']['boat_search_bar'] = array (
+		'#type' => 'textfield',
+		'#title' => 'Search by Boat Name or Client Name',
+	);
+	
+	$form['boat']['boat_search_fieldset']['boat_sort_type'] = array (
+		'#type' => 'radios',
+		'#title' => 'Sort Options',
+		'#options' => array (
+			'name' => 'Sort By Contact Name',
+			'date' => 'Sort By Start Date',
+		),
+		'#default_value' => 'date',
+	);
+	
+	$form['boat']['boat_search_fieldset']['apply_boat_search'] = array (
+		'#type' => 'button',
+		'#value' => 'Search',
+		'#ajax' => array (
+			'wrapper' => 'boat_table',
+			'callback' => 'boat_callback',
+		),
+		'#name' => 'boat_search',
+	);
+	
+	$form['boat']['boat_set'] = array (
+		'#prefix' => '<div id="boat_table">',
+		'#suffix' => '</div>'
+	);
+	
+	//grab the cottage rentals
+	$rentals = Rental::instanceLoadMultiple(array(
+		'rental_type' => 'BoatItem',
+		'has_been_confirmed' => 1,
+	));
+	
+	$search_string = isset($form_state['values']['boat_search_bar']) ? $form_state['values']['boat_search_bar'] : '';
+	$sort_type = isset($form_state['values']['boat_sort_type']) ? $form_state['values']['boat_sort_type'] : 'date';
+	
+	apply_boat_search($rentals, $search_string, $sort_type);
+	
+	$header = array (
+		'boat_name' => 'Boat Name',
+		'start_date' => 'Start Date',
+		'duration' => 'Duration',
+		'estimated_arrival_time' => 'Estimated Arrival Time',
+		'actual_arrival_time' => 'Actual Arrival Time',
+		'primary_contact_name' => 'Primary Contact Name',
+		'primary_contact_email' => 'Primary Contact Email',
+		'primary_contact_cc' => 'Primary Contact Credit Card',
+		'primary_contact_phone' => 'Primary Contact Phone Number',
+		'price' => 'Price',
+	);
+	
+	$options = buildBoatOptions($rentals);
+	$defaults = array();
+	
+	foreach($rentals as $rental) {
+		if($rental->getProperty('actual_arrival_time') != null) {
+				
+			$rentalID = $rental->getProperty('rental_id');
+			$defaults[$rentalID] = true;
+		}
+	}
+	
+	$form['boat']['boat_set']['boat_table'] = array (
+		'#type' =>'tableselect',
+		'#header' => $header,
+		'#options' => $options,
+		'#default_value' => $defaults,
+		'#empty' => 'No Boat Rentals Added',
+		'#prefix' => '<label>Select Rentals To Check In</label>',
+	);
+	
+	if(isset($form_state['triggering_element'])) {
+		if($form_state['triggering_element']['#name'] == 'boat_search') {
+			drupal_set_message('Search Applied');
+		}
+	
+		$form['boat']['boat_set']['boat_table']['#empty'] = 'No results matched the search';
+	}
 }
+
+function buildBoatOptions($rentals) {
+	$format = 'F j, Y';
+	$formatTime = 'F j, Y G:i';
+
+	$options = array();
+
+	foreach($rentals as $rental) {
+		$row = array();
+
+		$row['boat_name'] = '';
+
+
+		$rental->loadRentedItems();
+		$items = $rental->getProperty('rentedItems');
+
+		foreach($items as $item) {
+			if($row['boat_name'] != '') {
+				$row['boat_name'] .= '<br>';
+			}
+				
+			$row['boat_name'] .= $item->getProperty('name');
+		}
+
+		$row['start_date'] = date($format, $rental->getProperty('start_time'));
+		$row['duration'] = ($rental->getProperty('duration') / 24) . ' days';
+		$row['estimated_arrival_time'] = date($formatTime, $rental->getProperty('estimated_arrival_time'));
+		$row['actual_arrival_time'] = $rental->getProperty('actual_arrival_time') != null ? date($formatTime, $rental->getProperty('actual_arrival_time')) : 'Not Checked In Yet';
+
+		$rental->loadRentalAccount();
+
+		$account = $rental->getProperty('rentalAccount');
+
+		$renter = new Renter('standard', array(
+			'id' => $account->getProperty('primary_renter_id'),
+			'account_uid' => $account->getProperty('uid'),
+		));
+
+		$row['primary_contact_name'] = $renter->getProperty('name');
+
+		$u = new User('standard', array(
+			'uid' => $account->getProperty('uid'),
+		));
+
+		$row['primary_contact_email'] = $u->getProperty('mail');
+		$row['primary_contact_cc'] = $account->getProperty('credit_card');
+		$row['primary_contact_phone'] = $account->getProperty('phone');
+
+		$row['price'] = '$' . $rental->getPrice();
+
+		$rentalID = $rental->getProperty('rental_id');
+		$options[$rentalID] = $row;
+
+	}
+
+
+	return $options;
+}
+
+function apply_boat_search(&$rentals, $search_string, $sort_type) {
+	$search_string = '*' . preg_quote($search_string) . '*';
+
+
+	foreach($rentals as $i => $rental) {
+		if(!boat_search_match($rental, $search_string)) {
+			unset($rentals[$i]);
+		}
+	}
+
+	/**
+	 * Apply the sort types, these use anonymous functions
+	 * to apply the sort (kind of like function pointers)
+	 */
+	if($sort_type == 'date') {
+		usort($rentals, function($left, $right){
+			$lDate = $left->getProperty('start_time');
+			$rDate = $right->getProperty('start_time');
+				
+			if($lDate < $rDate) {
+				return 1;
+			} else if($lDate == $rDate) {
+				return 0;
+			} else {
+				return -1;
+			}
+		});
+	} else { //else sort by client name
+		usort($rentals, function($left, $right){
+			$left->loadRentalAccount();
+			$right->loadRentalAccount();
+				
+			$laccount = $left->getProperty('rentalAccount');
+			$raccount = $right->getProperty('rentalAccount');
+				
+			$lrenter = new Renter('standard', array(
+				'id' => $laccount->getProperty('primary_renter_id'),
+				'account_uid' => $laccount->getProperty('uid'),
+			));
+				
+			$rrenter = new Renter('standard', array(
+				'id' => $raccount->getProperty('primary_renter_id'),
+				'account_uid' => $raccount->getProperty('uid'),
+			));
+				
+			$rname = $rrenter->getProperty('name');
+				
+			return  -strcmp($lname, $rname);
+		});
+	}
+}
+
+function boat_search_match($rental, $search_string) {
+	$rental->loadRentedItems();
+	
+	$items = $rental->getProperty('rentedItems');
+	
+	foreach($items as $item) {
+		$name =  $item->getProperty('name');
+	
+		if(preg_match($search_string, $name) == 1) {
+			return true;
+		}
+	
+	}
+	
+	$rental->loadRentalAccount();
+	
+	$account = $rental->getProperty('rentalAccount');
+	
+	$renter = new Renter('standard', array(
+		'id' => $account->getProperty('primary_renter_id'),
+		'account_uid' => $account->getProperty('uid'),
+	));
+	
+	$name = $renter->getProperty('name');
+	
+	if(preg_match($search_string, $name) == 1) {
+		return true;
+	}
+	
+	return false;
+}
+
 
 function renter_home_form($form, &$form_state) {
 	$form['test'] = array (
