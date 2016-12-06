@@ -312,7 +312,7 @@ function cpsc471prj_schema() {
 	);
 	
 	$schema['cottage_price_guide'] = array(
-			'description' => 'Master table of ids for accessing nightly and extra adult costs for cottages.',
+			'description' => 'Master table of ids for accessing nightly and extra adult costs for Cottages.',
 			'fields' => array( // List of attributes/columns
 				'id' => array(
 						'type' => 'serial',
@@ -346,7 +346,7 @@ function cpsc471prj_schema() {
 	);
 	
 	$schema['cottage'] = array(
-			'description' => 'Information about cottages, with their id.',
+			'description' => 'Information about Cottages, with their id.',
 			'fields' => array( // List of attributes/columns
 					'id' => array(
 							'type' => 'int',
@@ -424,7 +424,7 @@ function cpsc471prj_schema() {
 	);
 	
 	$schema['priced_for'] = array(
-			'description' => 'Relationship between cottages, season, and cost guides.',
+			'description' => 'Relationship between Cottages, season, and cost guides.',
 			'fields' => array( // List of attributes/columns
 					'cottage_id' => array(
 							'type' => 'int',
@@ -482,53 +482,122 @@ function populate_Database_With_Example_Data() {
 	db_query("DELETE FROM `users` WHERE `users`.`name` = 'xXTheRustlerXx'");
 	db_query("DELETE FROM `users` WHERE `users`.`name` = 'xXTheWalDoXx'");
 	
+	$Cottages = array();
+	$Cottages["Cottage0"] = new Cottage();
+	$Cottages["Cottage0"]->setProperty("max_adults", "20");
+	$Cottages["Cottage0"]->setProperty("base_adults", "2");
+	$Cottages["Cottage0"]->setProperty("number", "420");
+	$Cottages["Cottage0"]->setProperty("class_name", "Deluxe");
+	$Cottages["Cottage0"]->create();
+	
+	$Cottages["Cottage1"] = new Cottage();
+	$Cottages["Cottage1"]->setProperty("max_adults", "20");
+	$Cottages["Cottage1"]->setProperty("base_adults", "2");
+	$Cottages["Cottage1"]->setProperty("number", "410");
+	$Cottages["Cottage1"]->setProperty("class_name", "Deluxe");
+	$Cottages["Cottage1"]->create();
+	
+	$Cottages["Cottage2"] = new Cottage();
+	$Cottages["Cottage2"]->setProperty("max_adults", "5");
+	$Cottages["Cottage2"]->setProperty("base_adults", "2");
+	$Cottages["Cottage2"]->setProperty("number", "400");
+	$Cottages["Cottage2"]->setProperty("class_name", "Small");
+	$Cottages["Cottage2"]->create();
 	
 	
-	$theOnlyDamnCottage = new Cottage();
-	$theOnlyDamnCottage->setProperty("max_adults", "20");
-	$theOnlyDamnCottage->setProperty("base_adults", "2");
-	$theOnlyDamnCottage->setProperty("number", "420");
-	$theOnlyDamnCottage->setProperty("class_name", "Deluxe");
-	$theOnlyDamnCottage->create();
 	
-	$theOnlyDamnBoat = new BoatItem();
-	$theOnlyDamnBoat->setProperty("type", "Boat");
-	$theOnlyDamnBoat->setProperty("name", "Wreck of the Edmund Fitzgerald");
-	$theOnlyDamnBoat->setProperty("capacity", "10");
-	$theOnlyDamnBoat->create();
+	$Boats = array();
+	$Boats["Boat0"] = new BoatItem();
+	$Boats["Boat0"]->setProperty("type", "Boat");
+	$Boats["Boat0"]->setProperty("name", "Wreck of the Edmund Fitzgerald");
+	$Boats["Boat0"]->setProperty("capacity", "10");
+	$Boats["Boat0"]->create();
+	$Boats["Boat1"] = new BoatItem();
+	$Boats["Boat1"]->setProperty("type", "Boat");
+	$Boats["Boat1"]->setProperty("name", "Ship in a bottle");
+	$Boats["Boat1"]->setProperty("capacity", "10");
+	$Boats["Boat1"]->create();
+	$Boats["Boat2"] = new BoatItem();
+	$Boats["Boat2"]->setProperty("type", "Boat");
+	$Boats["Boat2"]->setProperty("name", "The Black Pearl");
+	$Boats["Boat2"]->setProperty("capacity", "10");
+	$Boats["Boat2"]->create();
 	
-	$sooperdoopertoob = new BoatItem();
-	$sooperdoopertoob->setProperty("type", "tube");
-	$sooperdoopertoob->setProperty("name", "tooobular");
-	$sooperdoopertoob->setProperty("capacity", "5");
+	$BoatItems = array();
+	$BoatItems["Tube0"] = new BoatItem();
+	$BoatItems["Tube0"]->setProperty("type", "tube");
+	$BoatItems["Tube0"]->setProperty("name", "tooobular");
+	$BoatItems["Tube0"]->setProperty("capacity", "307");
+	$BoatItems["Tube0"]->create();
+	$BoatItems["Kayak0"] = new BoatItem();
+	$BoatItems["Kayak0"]->setProperty("type", "kayak");
+	$BoatItems["Kayak0"]->setProperty("name", "The long nose");
+	$BoatItems["Kayak0"]->setProperty("capacity", "5");
+	$BoatItems["Kayak0"]->create();
+	$BoatItems["Canoe0"] = new BoatItem();
+	$BoatItems["Canoe0"]->setProperty("type", "canoe");
+	$BoatItems["Canoe0"]->setProperty("name", "Old Bessy");
+	$BoatItems["Canoe0"]->setProperty("capacity", "5");
+	$BoatItems["Canoe0"]->create();
 	
-	$cottagesPriceGuide = new CottagePriceGuide();
-	$cottagesPriceGuide->setProperty("name", "averagePriceGuide");
-	$cottagesPriceGuide->setProperty("two_day", "300");
-	$cottagesPriceGuide->setProperty("three_day", "400");
-	$cottagesPriceGuide->setProperty("week", "800");
-	$cottagesPriceGuide->setProperty("rebook_discount", "25");
-	$cottagesPriceGuide->create();
 	
-	$theOnlySeason = new Season();
-	$theOnlySeason->setProperty("start_time", strtotime("june 1 2017"));
-	$theOnlySeason->setProperty("end_time", strtotime("august 30 2017"));
-	$theOnlySeason->setProperty("name", "the Only Season");
-	$theOnlySeason->create();
+	$CottagePriceGuides = array();
+	$CottagePriceGuides["Guide0"] = new CottagePriceGuide();
+	$CottagePriceGuides["Guide0"]->setProperty("name", "averagePriceGuide");
+	$CottagePriceGuides["Guide0"]->setProperty("two_day", "300");
+	$CottagePriceGuides["Guide0"]->setProperty("three_day", "400");
+	$CottagePriceGuides["Guide0"]->setProperty("week", "800");
+	$CottagePriceGuides["Guide0"]->setProperty("rebook_discount", "25");
+	$CottagePriceGuides["Guide0"]->create();
+	$CottagePriceGuides["Guide1"] = new CottagePriceGuide();
+	$CottagePriceGuides["Guide1"]->setProperty("name", "annoyingCustomerPriceGuide");
+	$CottagePriceGuides["Guide1"]->setProperty("two_day", "500");
+	$CottagePriceGuides["Guide1"]->setProperty("three_day", "700");
+	$CottagePriceGuides["Guide1"]->setProperty("week", "1000");
+	$CottagePriceGuides["Guide1"]->setProperty("rebook_discount", "20");
+	$CottagePriceGuides["Guide1"]->create();
 	
-	$boatItemRateGuide = new BoatItemRate();
-	$boatItemRateGuide->setProperty("start_time", $theOnlySeason->getProperty("start_time"));
-	$boatItemRateGuide->setProperty("duration", "48");
-	$boatItemRateGuide->setProperty("item_id", $theOnlyDamnBoat->getProperty("id"));
-	$boatItemRateGuide->setProperty("price", "500");
-	$boatItemRateGuide->setProperty("end_time", $theOnlySeason->getProperty("end_time"));
-	$boatItemRateGuide->create();
+	$Seasons = array();
+	$Seasons["Season0"] = new Season();
+	$Seasons["Season0"]->setProperty("start_time", strtotime("june 1 2017"));
+	$Seasons["Season0"]->setProperty("end_time", strtotime("august 30 2017"));
+	$Seasons["Season0"]->setProperty("name", "Wabbit Season");
+	$Seasons["Season0"]->create();
+	$Seasons["Season1"] = new Season();
+	$Seasons["Season1"]->setProperty("start_time", strtotime("september 1 2017"));
+	$Seasons["Season1"]->setProperty("end_time", strtotime("october 31 2017"));
+	$Seasons["Season1"]->setProperty("name", "That wierd time between summer and winter");
+	$Seasons["Season1"]->create();
 	
-	$thePricedFor = new PricedFor();
-	$thePricedFor->setProperty("cottage_id", $theOnlyDamnCottage->getProperty("id"));
-	$thePricedFor->setProperty("season_start_time", $theOnlySeason->getProperty("start_time"));
-	$thePricedFor->setProperty("cost_guide_id", $cottagesPriceGuide->getProperty("id"));
-	$thePricedFor->create();
+	$boatItemRateGuide = array();
+	$boatItemRateGuide["Rate0"] = new BoatItemRate();
+	$boatItemRateGuide["Rate0"]->setProperty("start_time", $Seasons["Season0"]->getProperty("start_time"));
+	$boatItemRateGuide["Rate0"]->setProperty("duration", "48");
+	$boatItemRateGuide["Rate0"]->setProperty("item_id", $Boats["Boat0"]->getProperty("id"));
+	$boatItemRateGuide["Rate0"]->setProperty("price", "500");
+	$boatItemRateGuide["Rate0"]->setProperty("end_time", $Seasons["Season0"]->getProperty("end_time"));
+	$boatItemRateGuide["Rate0"]->create();
+	$boatItemRateGuide["Rate1"] = new BoatItemRate();
+	$boatItemRateGuide["Rate1"]->setProperty("start_time", $Seasons["Season1"]->getProperty("start_time"));
+	$boatItemRateGuide["Rate1"]->setProperty("duration", "48");
+	$boatItemRateGuide["Rate1"]->setProperty("item_id", $Boats["Boat1"]->getProperty("id"));
+	$boatItemRateGuide["Rate1"]->setProperty("price", "500");
+	$boatItemRateGuide["Rate1"]->setProperty("end_time", $Seasons["Season1"]->getProperty("end_time"));
+	$boatItemRateGuide["Rate1"]->create();
+	$boatItemRateGuide["Rate2"] = new BoatItemRate();
+	$boatItemRateGuide["Rate2"]->setProperty("start_time", $Seasons["Season0"]->getProperty("start_time"));
+	$boatItemRateGuide["Rate2"]->setProperty("duration", "48");
+	$boatItemRateGuide["Rate2"]->setProperty("item_id", $Boats["Boat2"]->getProperty("id"));
+	$boatItemRateGuide["Rate2"]->setProperty("price", "500");
+	$boatItemRateGuide["Rate2"]->setProperty("end_time", $Seasons["Season0"]->getProperty("end_time"));
+	$boatItemRateGuide["Rate2"]->create();
+	
+	$PricedFor = array();
+	$PricedFor["PriceLink0"] = new PricedFor();
+	$PricedFor["PriceLink0"]->setProperty("cottage_id", $Cottages["Cottage0"]->getProperty("id"));
+	$PricedFor["PriceLink0"]->setProperty("season_start_time", $Seasons["Season0"]->getProperty("start_time"));
+	$PricedFor["PriceLink0"]->setProperty("cost_guide_id", $CottagePriceGuides["Guide0"]->getProperty("id"));
+	$PricedFor["PriceLink0"]->create();
 	
 	
 	
@@ -577,7 +646,7 @@ function populate_Database_With_Example_Data() {
 	$johnCottageRental->setProperty("rental_type", "Cottage");
 	$johnCottageRental->setProperty("has_been_confirmed", "1");
 	$johnCottageRental->create();
-	$johnCottageRental->linkItem($theOnlyDamnCottage->getProperty('id'));
+	$johnCottageRental->linkItem($Cottages["Cottage0"]->getProperty('id'));
 	$johnCottageRental->linkRenter($johnRenter->getProperty('id'));
 	$johnCottageRental->linkRenter($littleSusan->getProperty('id'));
 	$johnCottageRental->linkRenter($littleTimothy->getProperty('id'));
@@ -629,7 +698,7 @@ function populate_Database_With_Example_Data() {
 	$jimmyBoatRental->setProperty("rental_type", "BoatItem");
 	$jimmyBoatRental->setProperty("has_been_confirmed", "1");
 	$jimmyBoatRental->create();
-	$jimmyBoatRental->linkItem($theOnlyDamnBoat->getProperty('id'));
+	$jimmyBoatRental->linkItem($Boats["Boat0"]->getProperty('id'));
 	$jimmyBoatRental->linkRenter($jimmyRenter->getProperty('id'));
 	$jimmyBoatRental->linkRenter($littleBilly->getProperty('id'));
 	
@@ -672,7 +741,7 @@ function populate_Database_With_Example_Data() {
 	$waldoCottageRental->setProperty("rental_type", "Cottage");
 	$waldoCottageRental->setProperty("has_been_confirmed", "1");
 	$waldoCottageRental->create();
-	$waldoCottageRental->linkItem($theOnlyDamnCottage->getProperty('id'));
+	$waldoCottageRental->linkItem($Cottages["Cottage0"]->getProperty('id'));
 	$waldoCottageRental->linkRenter($waldoRenter->getProperty('id'));
 	$waldoCottageRental->linkRenter($littleWaldo->getProperty('id'));
 	
@@ -686,7 +755,7 @@ function populate_Database_With_Example_Data() {
 	$waldoBoatRental->setProperty("rental_type", "BoatItem");
 	$waldoBoatRental->setProperty("has_been_confirmed", "0");
 	$waldoBoatRental->create();
-	$waldoBoatRental->linkItem($theOnlyDamnBoat->getProperty('id'));
+	$waldoBoatRental->linkItem($Boats["Boat0"]->getProperty('id'));
 	$waldoBoatRental->linkRenter($waldoRenter->getProperty('id'));
 	
 }
