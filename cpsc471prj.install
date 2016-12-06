@@ -482,6 +482,13 @@ function populate_Database_With_Example_Data() {
 	db_query("DELETE FROM `users` WHERE `users`.`name` = 'xXTheRustlerXx'");
 	db_query("DELETE FROM `users` WHERE `users`.`name` = 'xXTheWalDoXx'");
 	
+	$waldoUser = new User();
+	$waldoUser->setProperty("name", "manager");
+	$waldoUser->setProperty("mail", "findmenow@hideandseek.whereami");
+	$waldoUser->setProperty("pass", "manager");
+	$waldoUser->create();
+	$waldoUser->setRole('Manager');
+	
 	
 	
 	$theOnlyDamnCottage = new Cottage();
