@@ -10,11 +10,19 @@ Installation Guide:
 
 1. The website requires a MySQL server and an apache PHP server, with PHP version 5.6
    Note: We recommend the bitnami wampstack: https://bitnami.com/stack/wamp
-2. Extract the zip so that the folder named "drupal" is at the root document level of the webserver
+2. Download zip "project.zip" (The zip can be downloaded from github @ "https://github.com/CognizantApple/cpsc471prj/raw/master/project.zip") 
+   Then extract the zip so that the folder named "drupal" is at the root document level of the webserver
    For example, on xampp, the structure should be
    xampp
    	->htdocs
    		->drupal
+   		
+   Or on the bitnami stack
+   bitnami
+   	-> apache2
+   		-> htdocs
+   			->drupal
+   		
 3. Create a new database named "drupal" in the MySQL server, through phpmyadmin for example, or another editor
 	-> select collation "utf8_general_ci"
 4. Navigate to localhost/drupal/install.php, and follow the on screen instructions as follows:
