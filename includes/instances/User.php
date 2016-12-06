@@ -97,7 +97,12 @@ class User extends DBTableInstance {
 	}
 	
 	public function setRole($roleName, $hasRole = true) {
-		global $user;
+		//global $user;
+		if($this->uid_p != null) {
+			$user = user_load($this->uid_p);
+		} else {
+			global $user;
+		}
 		
 		$roles = $user->roles;
 		

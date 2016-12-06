@@ -5,6 +5,7 @@
 						Joshua Walters
 						Andrew Schneider
 -------------------------------------------------------------------
+
 Installation Guide:
 
 1. The website requires a MySQL server and an apache PHP server, with PHP version 5.6
