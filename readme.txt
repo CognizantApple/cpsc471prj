@@ -88,5 +88,7 @@ Renter Accounts - Have access to renter side of the application
 	
 Note: New rental accounts can be made by navigating to localhost/drupal/scc/ while logged out of the application
 
-
-
+Note: The test instances define a set of valid times to place rentals, currently they are:
+June 1st, 2017 to August 1st, 2017 (For cottages)
+September 1st 2017 to October 1st 2017 (For cottages)
+June 1st, 2017 -> end of time (For Boats)

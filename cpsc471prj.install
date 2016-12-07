@@ -653,22 +653,24 @@ function populate_Database_With_Example_Data() {
 	$boatItemRateGuide["Rate0"]->setProperty("duration", "48");
 	$boatItemRateGuide["Rate0"]->setProperty("item_id", $Boats["Boat0"]->getProperty("id"));
 	$boatItemRateGuide["Rate0"]->setProperty("price", "500");
-	$boatItemRateGuide["Rate0"]->setProperty("end_time", $Seasons["Season0"]->getProperty("end_time"));
+	$boatItemRateGuide["Rate0"]->setProperty("end_time", null);
 	$boatItemRateGuide["Rate0"]->create();
 	$boatItemRateGuide["Rate1"] = new BoatItemRate();
-	$boatItemRateGuide["Rate1"]->setProperty("start_time", $Seasons["Season1"]->getProperty("start_time"));
+	$boatItemRateGuide["Rate1"]->setProperty("start_time", $Seasons["Season0"]->getProperty("start_time"));
 	$boatItemRateGuide["Rate1"]->setProperty("duration", "48");
 	$boatItemRateGuide["Rate1"]->setProperty("item_id", $Boats["Boat1"]->getProperty("id"));
 	$boatItemRateGuide["Rate1"]->setProperty("price", "500");
-	$boatItemRateGuide["Rate1"]->setProperty("end_time", $Seasons["Season1"]->getProperty("end_time"));
+	$boatItemRateGuide["Rate1"]->setProperty("end_time", null);
 	$boatItemRateGuide["Rate1"]->create();
 	$boatItemRateGuide["Rate2"] = new BoatItemRate();
 	$boatItemRateGuide["Rate2"]->setProperty("start_time", $Seasons["Season0"]->getProperty("start_time"));
 	$boatItemRateGuide["Rate2"]->setProperty("duration", "48");
 	$boatItemRateGuide["Rate2"]->setProperty("item_id", $Boats["Boat2"]->getProperty("id"));
 	$boatItemRateGuide["Rate2"]->setProperty("price", "500");
-	$boatItemRateGuide["Rate2"]->setProperty("end_time", $Seasons["Season0"]->getProperty("end_time"));
+	$boatItemRateGuide["Rate2"]->setProperty("end_time", null);
 	$boatItemRateGuide["Rate2"]->create();
+	
+	
 	
 	$PricedFor = array();
 	$PricedFor["PriceLink0"] = new PricedFor();
@@ -676,6 +678,34 @@ function populate_Database_With_Example_Data() {
 	$PricedFor["PriceLink0"]->setProperty("season_start_time", $Seasons["Season0"]->getProperty("start_time"));
 	$PricedFor["PriceLink0"]->setProperty("cost_guide_id", $CottagePriceGuides["Guide0"]->getProperty("id"));
 	$PricedFor["PriceLink0"]->create();
+	$PricedFor["PriceLink1"] = new PricedFor();
+	$PricedFor["PriceLink1"]->setProperty("cottage_id", $Cottages["Cottage0"]->getProperty("id"));
+	$PricedFor["PriceLink1"]->setProperty("season_start_time", $Seasons["Season1"]->getProperty("start_time"));
+	$PricedFor["PriceLink1"]->setProperty("cost_guide_id", $CottagePriceGuides["Guide1"]->getProperty("id"));
+	$PricedFor["PriceLink1"]->create();
+	
+	$PricedFor["PriceLink2"] = new PricedFor();
+	$PricedFor["PriceLink2"]->setProperty("cottage_id", $Cottages["Cottage1"]->getProperty("id"));
+	$PricedFor["PriceLink2"]->setProperty("season_start_time", $Seasons["Season0"]->getProperty("start_time"));
+	$PricedFor["PriceLink2"]->setProperty("cost_guide_id", $CottagePriceGuides["Guide0"]->getProperty("id"));
+	$PricedFor["PriceLink2"]->create();
+	$PricedFor["PriceLink3"] = new PricedFor();
+	$PricedFor["PriceLink3"]->setProperty("cottage_id", $Cottages["Cottage1"]->getProperty("id"));
+	$PricedFor["PriceLink3"]->setProperty("season_start_time", $Seasons["Season1"]->getProperty("start_time"));
+	$PricedFor["PriceLink3"]->setProperty("cost_guide_id", $CottagePriceGuides["Guide1"]->getProperty("id"));
+	$PricedFor["PriceLink3"]->create();
+	
+	$PricedFor["PriceLink4"] = new PricedFor();
+	$PricedFor["PriceLink4"]->setProperty("cottage_id", $Cottages["Cottage1"]->getProperty("id"));
+	$PricedFor["PriceLink4"]->setProperty("season_start_time", $Seasons["Season0"]->getProperty("start_time"));
+	$PricedFor["PriceLink4"]->setProperty("cost_guide_id", $CottagePriceGuides["Guide0"]->getProperty("id"));
+	$PricedFor["PriceLink4"]->create();
+	$PricedFor["PriceLink5"] = new PricedFor();
+	$PricedFor["PriceLink5"]->setProperty("cottage_id", $Cottages["Cottage1"]->getProperty("id"));
+	$PricedFor["PriceLink5"]->setProperty("season_start_time", $Seasons["Season1"]->getProperty("start_time"));
+	$PricedFor["PriceLink5"]->setProperty("cost_guide_id", $CottagePriceGuides["Guide1"]->getProperty("id"));
+	$PricedFor["PriceLink5"]->create();
+	
 	
 	
 	
